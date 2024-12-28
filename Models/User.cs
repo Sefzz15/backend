@@ -1,4 +1,4 @@
-namespace backend.Models // Βεβαιώσου ότι το namespace είναι σωστό
+namespace backend.Models
 {
     public class User
     {

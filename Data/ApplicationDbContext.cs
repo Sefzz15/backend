@@ -9,5 +9,15 @@ namespace backend.Data
             : base(options) { }
 
         public DbSet<User> Users { get; set; } = null!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasKey(u => u.uid);
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
+
+
 }
