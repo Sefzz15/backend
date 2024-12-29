@@ -2,83 +2,68 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
+using Microsoft.Extensions.Logging; // Ensure this is included for logging
 
 namespace backend.Controllers
 {
-
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UsersController> _logger; // Declare the logger
 
-        public UsersController(ApplicationDbContext context)
+        // Inject the logger into the constructor
+        public UsersController(ApplicationDbContext context, ILogger<UsersController> logger)
         {
             _context = context;
+            _logger = logger; // Assign the logger to the private field
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        [HttpPost("login")]
+        public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
         {
-            return await _context.Users.ToListAsync();
-        }
+            // Log the login attempt
+            _logger.LogInformation($"Login attempt for username: {loginRequest.Username}");
 
-        [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(User user)
-        {
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
+            // Fetch the user by username
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.uname == loginRequest.Username);
 
-            return CreatedAtAction(nameof(GetUsers), new { uname = user.uname }, user);
-        }
-        [HttpPut("{uid}")]
-        public async Task<IActionResult> UpdateUser(int uid, User user)
-        {
-            if (uid != user.uid)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(user).State = EntityState.Modified;
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(uid))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        [HttpDelete("{uid}")]
-        public async Task<ActionResult<User>> DeleteUser(int uid)
-        {
-            var user = await _context.Users.FindAsync(uid);
+            // Check if user exists
             if (user == null)
             {
-                return NotFound();
+                _logger.LogWarning($"Invalid login attempt for non-existent a: {loginRequest.Username}");
+                return Unauthorized("Invalid credentials");
             }
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            // Check if the password matches
+            if (user.upass != loginRequest.Password)
+            {
+                _logger.LogWarning($"Invalid password attempt for c: {loginRequest.Username}");
+                return Unauthorized("Invalid credentials");
+            }
 
-            return user;
+            // Log successful login
+            _logger.LogInformation($"User {loginRequest.Username} logged in successfully.");
+
+            return Ok(new { message = "Login successful!" });
         }
 
-        private bool UserExists(int uid)
+        public class LoginRequest
         {
-            return _context.Users.Any(e => e.uid == uid);
+            public string Username { get; set; } = "";
+            public string Password { get; set; } = "";
         }
 
     }
-
 }
+
+
+
+
+
+
+
+
+
