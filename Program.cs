@@ -1,55 +1,44 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using backend.Data;
-using MySql.Data.MySqlClient;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add CORS policy to allow requests from the frontend
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalhost",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
+
+// Retrieve connection string from configuration
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
+// Check if connection string is valid
 if (string.IsNullOrEmpty(connectionString))
 {
-    throw new InvalidOperationException("Connection string 'DefaultConnection' is not defined in appsettings.json.");
+    throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
 }
 
-// Register DbContext with MySQL
+// Add DbContext with MySQL provider
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseMySQL(connectionString));
+    options.UseMySQL(connectionString)
+);
 
-// Register JWT Authentication
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = false,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your-secret-key")),
-        };
-    });
-
-// Register MVC Controllers
+// Add controllers for API endpoints
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Use CORS to allow frontend from Angular
-app.UseCors(builder =>
-    builder.WithOrigins("http://localhost:4200") // Angular URL
-           .AllowAnyHeader()
-           .AllowAnyMethod());
+// Enable CORS
+app.UseCors("AllowLocalhost");
 
-// Use Authentication Middleware
-app.UseAuthentication();
-
-// Use Authorization Middleware
-app.UseAuthorization();
-
-// Map Controllers
+// Enable routing and map controllers
+app.UseRouting();
 app.MapControllers();
 
-// Start the app
 app.Run();
