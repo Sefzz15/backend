@@ -31,7 +31,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // Add controllers for API endpoints
 builder.Services.AddControllers();
-
+builder.Services.AddLogging();
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 var app = builder.Build();
 
 // Enable CORS
