@@ -3,19 +3,18 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 using backend.Services;
-using BCrypt.Net;
 
 namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class EntitiesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly ILogger<UsersController> _logger;
+        private readonly ILogger<EntitiesController> _logger;
         private readonly JwtService _jwtService;  // Import the JwtService service
 
-        public UsersController(ApplicationDbContext context, ILogger<UsersController> logger, JwtService jwtService)
+        public EntitiesController(ApplicationDbContext context, ILogger<EntitiesController> logger, JwtService jwtService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -23,7 +22,7 @@ namespace backend.Controllers
         }
 
 
-        // // API for user login using hashing
+        // API for user login without hashing
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
         {
@@ -40,7 +39,7 @@ namespace backend.Controllers
             }
 
             // Check if the password matches
-            if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.upass))
+            if (user.upass != loginRequest.Password)
             {
                 _logger.LogWarning($"Invalid password attempt for user: {loginRequest.Username}");
                 return Unauthorized(new { message = "Invalid credentials" });
@@ -60,7 +59,6 @@ namespace backend.Controllers
             public string Username { get; set; } = "";
             public string Password { get; set; } = "";
         }
-
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
@@ -83,7 +81,7 @@ namespace backend.Controllers
         }
 
 
-        // //Create (POST) using hashing
+        //Create (POST) without hashing
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] User user)
         {
@@ -92,37 +90,26 @@ namespace backend.Controllers
                 return BadRequest("Invalid user data.");
             }
 
-            user.upass = BCrypt.Net.BCrypt.HashPassword(user.upass);
-
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return Ok(new { message = "User created successfully!", user });
         }
 
 
-        // //Update (PUT) using hashing
+        //Update (PUT) without hashing
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] User updatedUser)
         {
-            // Find the user by ID
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
                 return NotFound("User not found.");
             }
 
-            // If the password is being updated, hash the new password
-            if (!string.IsNullOrEmpty(updatedUser.upass))
-            {
-                updatedUser.upass = BCrypt.Net.BCrypt.HashPassword(updatedUser.upass);
-            }
-            // Update other user properties
             user.uname = updatedUser.uname;
             user.upass = updatedUser.upass;
 
-            // Save changes to the database
             await _context.SaveChangesAsync();
-
             return Ok(new { message = "User updated successfully!", user });
         }
 
@@ -136,7 +123,7 @@ namespace backend.Controllers
             {
                 return NotFound("User not found.");
             }
-            
+
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return Ok(new { message = "User deleted successfully!" });
