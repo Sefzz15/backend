@@ -1,5 +1,6 @@
 using backend.Data;
 using Microsoft.EntityFrameworkCore;
+using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+builder.Services.AddSingleton<JwtService>();
+
 var app = builder.Build();
 
 // Enable CORS
