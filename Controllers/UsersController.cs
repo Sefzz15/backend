@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using backend.Data;
 using backend.Models;
 using backend.Services;
-using BCrypt.Net;
 
 namespace backend.Controllers
 {

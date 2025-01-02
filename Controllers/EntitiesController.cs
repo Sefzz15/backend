@@ -12,7 +12,7 @@ namespace backend.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<EntitiesController> _logger;
-        private readonly JwtService _jwtService;  // Import the JwtService service
+        private readonly JwtService _jwtService;
 
         public EntitiesController(ApplicationDbContext context, ILogger<EntitiesController> logger, JwtService jwtService)
         {
@@ -22,7 +22,7 @@ namespace backend.Controllers
         }
 
 
-        // API for user login without hashing
+        // API for login without hashing
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
         {
