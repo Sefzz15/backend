@@ -30,8 +30,8 @@ namespace backend.Data
                 entity.Property(e => e.first_name).HasMaxLength(50);
                 entity.Property(e => e.last_name).HasMaxLength(50);
                 entity.Property(e => e.email).HasMaxLength(100);
-                entity.Property(e => e.phone).HasMaxLength(15);
-                entity.Property(e => e.address).HasMaxLength(255);
+                entity.Property(e => e.phone).HasMaxLength(15).IsRequired(false); // phone is nullable
+                entity.Property(e => e.address).HasMaxLength(255).IsRequired(false); // address is nullable
                 entity.Property(e => e.city).HasMaxLength(50);
             });
 
@@ -52,8 +52,11 @@ namespace backend.Data
                 entity.Property(e => e.o_date).IsRequired(); // o_date
                 entity.Property(e => e.total_amount).HasColumnType("DECIMAL(10,2)");
                 entity.Property(e => e.status)
+                      .HasConversion(
+                          v => v.ToString(), // Convert enum to string for storage
+                          v => (OrderStatus)Enum.Parse(typeof(OrderStatus), v)) // Convert string back to enum when reading
                       .HasMaxLength(20)
-                      .HasDefaultValue("Pending"); // status
+                      .HasDefaultValue(OrderStatus.Pending); // status default value
 
                 entity.HasOne(e => e.Customer)
                       .WithMany(c => c.Orders)

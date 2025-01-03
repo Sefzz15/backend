@@ -24,8 +24,8 @@ namespace backend.Migrations
                     first_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     last_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false),
-                    phone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: false),
-                    address = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: false),
+                    phone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: true),
+                    address = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true),
                     city = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>

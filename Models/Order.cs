@@ -1,10 +1,17 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace backend.Models
 {
+    public enum OrderStatus 
+    {
+        Pending,
+        Processing,
+        Shipped,
+        Delivered,
+        Cancelled,
+        Refunded,
+        Failed,
+        OnHold
+    }
+
     public class Order
     {
         public int o_id { get; set; } // o_id
@@ -15,7 +22,7 @@ namespace backend.Models
 
         public decimal total_amount { get; set; } // total_amount
 
-        public string status { get; set; } = "Pending"; // status
+        public OrderStatus  status { get; set; } = OrderStatus.Pending; // status with default
 
         public required Customer Customer { get; set; } // `required` modifier
 
