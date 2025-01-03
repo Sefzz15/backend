@@ -29,7 +29,7 @@ namespace backend.Controllers
             _logger.LogInformation($"Login attempt for username: {loginRequest.Username}");
 
             // Check if the user exists
-            var user = await _context.Users
+            var user = await _context.Users!
                 .FirstOrDefaultAsync(u => u.uname == loginRequest.Username);
 
             if (user == null)
@@ -64,7 +64,7 @@ namespace backend.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users!.FindAsync(id);
             if (user == null)
             {
                 return NotFound("User not found.");
@@ -77,7 +77,7 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllUsers()
         {
-            var users = await _context.Users.ToListAsync();
+            var users = await _context.Users!.ToListAsync();
             return Ok(users);
         }
 
@@ -93,7 +93,7 @@ namespace backend.Controllers
 
             user.upass = BCrypt.Net.BCrypt.HashPassword(user.upass);
 
-            _context.Users.Add(user);
+            _context.Users!.Add(user);
             await _context.SaveChangesAsync();
             return Ok(new { message = "User created successfully!", user });
         }
@@ -104,7 +104,7 @@ namespace backend.Controllers
         public async Task<IActionResult> UpdateUser(int id, [FromBody] User updatedUser)
         {
             // Find the user by ID
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users!.FindAsync(id);
             if (user == null)
             {
                 return NotFound("User not found.");
@@ -130,7 +130,7 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users!.FindAsync(id);
             if (user == null)
             {
                 return NotFound("User not found.");

@@ -9,7 +9,9 @@ namespace backend.Models
         public string phone { get; set; } = "";
         public string address { get; set; } = "";
         public string city { get; set; } = "";
-    }
+    
+        public ICollection<Order> Orders { get; set; } = new List<Order>();
+}
 
 }
 
