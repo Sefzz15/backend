@@ -57,7 +57,7 @@ namespace backend.Migrations
                 {
                     uid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    uname = table.Column<string>(type: "longtext", nullable: false),
+                    uname = table.Column<string>(type: "varchar(255)", nullable: false),
                     upass = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
@@ -133,6 +133,12 @@ namespace backend.Migrations
                 name: "IX_Orders_c_id",
                 table: "Orders",
                 column: "c_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_uname",
+                table: "Users",
+                column: "uname",
+                unique: true);
         }
 
         /// <inheritdoc />

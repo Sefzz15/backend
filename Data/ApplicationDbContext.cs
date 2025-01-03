@@ -22,6 +22,7 @@ namespace backend.Data
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.uid); // Set primary key explicitly
+                entity.HasIndex(e => e.uname).IsUnique(); // Add unique index for `uname`
             });
             // Customers Table
             modelBuilder.Entity<Customer>(entity =>
