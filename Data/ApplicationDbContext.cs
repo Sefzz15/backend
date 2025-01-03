@@ -19,51 +19,69 @@ namespace backend.Data
         // Fluent API Configuration (for additional restrictions, e.g., relationships, constraints)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.uid); // Set primary key explicitly
+            });
+            // Customers Table
+            modelBuilder.Entity<Customer>(entity =>
+            {
+                entity.HasKey(e => e.c_id); // c_id
+                entity.Property(e => e.first_name).HasMaxLength(50);
+                entity.Property(e => e.last_name).HasMaxLength(50);
+                entity.Property(e => e.email).HasMaxLength(100);
+                entity.Property(e => e.phone).HasMaxLength(15);
+                entity.Property(e => e.address).HasMaxLength(255);
+                entity.Property(e => e.city).HasMaxLength(50);
+            });
 
-            // Primary Key configuration
-            modelBuilder.Entity<User>()
-                .HasKey(u => u.uid);
+            // Products Table
+            modelBuilder.Entity<Product>(entity =>
+            {
+                entity.HasKey(e => e.p_id); // p_id
+                entity.Property(e => e.p_name).HasMaxLength(100);
+                entity.Property(e => e.description).HasColumnType("TEXT");
+                entity.Property(e => e.price).HasColumnType("DECIMAL(10,2)");
+                entity.Property(e => e.stock_quantity).IsRequired();
+            });
 
-            modelBuilder.Entity<Customer>()
-                .HasKey(c => c.c_id);
+            // Orders Table
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.o_id); // o_id
+                entity.Property(e => e.o_date).IsRequired(); // o_date
+                entity.Property(e => e.total_amount).HasColumnType("DECIMAL(10,2)");
+                entity.Property(e => e.status)
+                      .HasMaxLength(20)
+                      .HasDefaultValue("Pending"); // status
 
-            modelBuilder.Entity<Product>()
-                .HasKey(p => p.p_id);
+                entity.HasOne(e => e.Customer)
+                      .WithMany(c => c.Orders)
+                      .HasForeignKey(e => e.c_id) // c_id
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
 
-            modelBuilder.Entity<Order>()
-                .HasKey(o => o.OId);
+            // OrderDetails Table
+            modelBuilder.Entity<OrderDetail>(entity =>
+            {
+                entity.HasKey(e => e.o_details_id); // o_details_id
 
-            modelBuilder.Entity<OrderDetail>()
-                .HasKey(od => od.ODetailsId);
+                entity.Property(e => e.quantity).IsRequired(); // quantity
+                entity.Property(e => e.price).HasColumnType("DECIMAL(10,2)"); // price
 
-            // Foreign Key relationships
-            modelBuilder.Entity<Order>()
-                .HasOne(o => o.Customer)
-                .WithMany()
-                .HasForeignKey(o => o.c_id)
-                .OnDelete(DeleteBehavior.Cascade); // Foreign key relationship: Customer -> Order
+                entity.HasOne(od => od.Order)
+                      .WithMany(o => o.OrderDetails)
+                      .HasForeignKey(od => od.o_id) // o_id
+                      .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<OrderDetail>()
-                .HasOne(od => od.Order)
-                .WithMany()
-                .HasForeignKey(od => od.OId)
-                .OnDelete(DeleteBehavior.Cascade); // Foreign key relationship: Order -> OrderDetail
+                entity.HasOne(od => od.Product)
+                      .WithMany()
+                      .HasForeignKey(od => od.p_id) // p_id
+                      .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<OrderDetail>()
-                .HasOne(od => od.Product)
-                .WithMany()
-                .HasForeignKey(od => od.p_id); // Foreign key relationship: Product -> OrderDetail
-
-            // Unique constraint on OrderDetail: Unique combination of o_id and p_id
-            modelBuilder.Entity<OrderDetail>()
-                .HasIndex(od => new { od.OId, od.p_id })
-                .IsUnique();
-
-            // Enum status field for Orders
-            modelBuilder.Entity<Order>()
-                .Property(o => o.Status)
-                .HasConversion<string>(); // Store status as string in DB (Pending, Processing, etc.)
+                entity.HasIndex(od => new { od.o_id, od.p_id }).IsUnique();
+            });
         }
+
     }
 }

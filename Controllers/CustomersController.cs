@@ -25,7 +25,7 @@ namespace backend.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetCustomerById(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _context.Customers!.FindAsync(id);
             if (customer == null)
             {
                 return NotFound("Customer not found.");
@@ -38,7 +38,7 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCustomers()
         {
-            var customers = await _context.Customers.ToListAsync();
+            var customers = await _context.Customers!.ToListAsync();
             return Ok(customers);
         }
 
@@ -52,7 +52,7 @@ namespace backend.Controllers
                 return BadRequest("Invalid customer data.");
             }
 
-            _context.Customers.Add(customer);
+            _context.Customers!.Add(customer);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Customer created successfully!", customer });
         }
@@ -63,7 +63,7 @@ namespace backend.Controllers
         public async Task<IActionResult> UpdateCustomer(int id, [FromBody] Customer updatedCustomer)
         {
             // Find the customer by ID
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _context.Customers!.FindAsync(id);
             if (customer == null)
             {
                 return NotFound("Customer not found.");
@@ -90,13 +90,13 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
-            var customer = await _context.Customers.FindAsync(id);
+            var customer = await _context.Customers!.FindAsync(id);
             if (customer == null)
             {
                 return NotFound("Customer not found.");
             }
 
-            _context.Customers.Remove(customer);
+            _context.Customers!.Remove(customer);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Customer deleted successfully!" });
         }
