@@ -148,13 +148,16 @@ namespace backend.Migrations
 
                     b.Property<string>("uname")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("upass")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("uid");
+
+                    b.HasIndex("uname")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });

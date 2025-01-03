@@ -11,7 +11,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250103080851_InitialCreate")]
+    [Migration("20250103085216_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -151,13 +151,16 @@ namespace backend.Migrations
 
                     b.Property<string>("uname")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("upass")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.HasKey("uid");
+
+                    b.HasIndex("uname")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
