@@ -26,7 +26,6 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("address")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("varchar(255)");
 
@@ -51,7 +50,6 @@ namespace backend.Migrations
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("phone")
-                        .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("varchar(15)");
 
