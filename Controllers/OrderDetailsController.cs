@@ -27,7 +27,7 @@ namespace backend.Controllers
                                  .ToListAsync();
         }
 
-        // GET: api/OrderDetails/5
+        // GET: api/OrderDetails/:id
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDetail>> GetOrderDetail(int id)
         {
@@ -54,7 +54,7 @@ namespace backend.Controllers
             return CreatedAtAction(nameof(GetOrderDetail), new { id = orderDetail.o_details_id }, orderDetail);
         }
 
-        // PUT: api/OrderDetails/5
+        // PUT: api/OrderDetails/:id
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrderDetail(int id, OrderDetail orderDetail)
         {
@@ -84,7 +84,7 @@ namespace backend.Controllers
             return NoContent();
         }
 
-        // DELETE: api/OrderDetails/5
+        // DELETE: api/OrderDetails/:id
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrderDetail(int id)
         {

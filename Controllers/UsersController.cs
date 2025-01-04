@@ -12,7 +12,7 @@ namespace backend.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UsersController> _logger;
-        private readonly JwtService _jwtService;  // Import the JwtService service
+        private readonly JwtService _jwtService;
 
         public UsersController(ApplicationDbContext context, ILogger<UsersController> logger, JwtService jwtService)
         {
@@ -22,7 +22,7 @@ namespace backend.Controllers
         }
 
 
-        // // API for user login using hashing
+        // API for user login using hashing
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginRequest loginRequest)
         {
@@ -82,7 +82,7 @@ namespace backend.Controllers
         }
 
 
-        // //Create (POST) using hashing
+        // Create (POST) using hashing
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] User user)
         {
@@ -99,7 +99,7 @@ namespace backend.Controllers
         }
 
 
-        // //Update (PUT) using hashing
+        // Update (PUT) using hashing
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] User updatedUser)
         {

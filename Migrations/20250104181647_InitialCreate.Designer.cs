@@ -11,7 +11,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250103085216_InitialCreate")]
+    [Migration("20250104181647_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -39,8 +39,8 @@ namespace backend.Migrations
 
                     b.Property<string>("email")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("first_name")
                         .IsRequired()
@@ -58,6 +58,9 @@ namespace backend.Migrations
 
                     b.HasKey("c_id");
 
+                    b.HasIndex("email")
+                        .IsUnique();
+
                     b.ToTable("Customers");
                 });
 
@@ -71,7 +74,9 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("o_date")
-                        .HasColumnType("datetime(6)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TIMESTAMP")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("status")
                         .IsRequired()
@@ -115,7 +120,10 @@ namespace backend.Migrations
                     b.HasIndex("o_id", "p_id")
                         .IsUnique();
 
-                    b.ToTable("OrderDetails");
+                    b.ToTable("OrderDetails", t =>
+                        {
+                            t.HasCheckConstraint("CHK_OrderDetail_Quantity_Price", "quantity > 0 AND price > 0");
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.Product", b =>
@@ -129,8 +137,8 @@ namespace backend.Migrations
 
                     b.Property<string>("p_name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("price")
                         .HasColumnType("DECIMAL(10,2)");
@@ -140,7 +148,13 @@ namespace backend.Migrations
 
                     b.HasKey("p_id");
 
-                    b.ToTable("Products");
+                    b.HasIndex("p_name")
+                        .IsUnique();
+
+                    b.ToTable("Products", null, t =>
+                        {
+                            t.HasCheckConstraint("CHK_Product_Quantity_Price", "stock_quantity >= 0 AND price > 0");
+                        });
                 });
 
             modelBuilder.Entity("backend.Models.User", b =>
@@ -170,7 +184,7 @@ namespace backend.Migrations
                     b.HasOne("backend.Models.Customer", "Customer")
                         .WithMany("Orders")
                         .HasForeignKey("c_id")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");
