@@ -12,7 +12,7 @@ namespace backend.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<CustomersController> _logger;
-        private readonly JwtService _jwtService;  // Import the JwtService service
+        private readonly JwtService _jwtService;
 
         public CustomersController(ApplicationDbContext context, ILogger<CustomersController> logger, JwtService jwtService)
         {
@@ -34,7 +34,7 @@ namespace backend.Controllers
         }
 
 
-        //Read (GET)
+        // Read (GET)
         [HttpGet]
         public async Task<IActionResult> GetAllCustomers()
         {
@@ -43,7 +43,7 @@ namespace backend.Controllers
         }
 
 
-        // //Create (POST) using hashing
+        // Create (POST) using hashing
         [HttpPost]
         public async Task<IActionResult> CreateCustomer([FromBody] Customer customer)
         {
@@ -58,7 +58,7 @@ namespace backend.Controllers
         }
 
 
-        // //Update (PUT) using hashing
+        // Update (PUT) using hashing
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCustomer(int id, [FromBody] Customer updatedCustomer)
         {
@@ -78,8 +78,6 @@ namespace backend.Controllers
             customer.address = updatedCustomer.address;
             customer.city = updatedCustomer.city;
 
-
-            // Save changes to the database
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Customer updated successfully!", customer });

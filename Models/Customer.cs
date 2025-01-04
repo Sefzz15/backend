@@ -2,7 +2,7 @@ namespace backend.Models
 {
     public class Customer
     {
-        public int c_id { get; set; }// Primary Key
+        public int c_id { get; set; }
         public string first_name { get; set; } = "";
         public string last_name { get; set; } = "";
         public string email { get; set; } = "";

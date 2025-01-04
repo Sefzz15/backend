@@ -28,7 +28,6 @@ namespace backend.Services
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            // Create claims
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, username),
