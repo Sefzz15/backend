@@ -12,8 +12,7 @@ builder.Services.AddCors(options =>
         {
             policy.WithOrigins("http://localhost:4200") // Άδεια στο Angular frontend
                   .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials(); // Απαραίτητο για SignalR με credentials
+                  .AllowAnyMethod();
         });
 });
 
@@ -36,7 +35,6 @@ builder.Services.AddControllers();
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddSingleton<JwtService>();
-builder.Services.AddSignalR();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
@@ -49,7 +47,6 @@ app.UseCors("AllowLocalhost");
 app.UseRouting();
 app.MapControllers();
 
-app.MapHub<ChatHub>("/chatHub");  // Ρύθμιση του SignalR Hub
 app.MapControllers();  // Ρύθμιση των API endpoints
 
 app.Run();
