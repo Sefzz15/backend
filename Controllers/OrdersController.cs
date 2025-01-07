@@ -2,7 +2,6 @@ using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using backend.Services;
 
 namespace backend.Controllers
 {
@@ -21,11 +20,28 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
-            return await _context.Orders!
-                                 .Include(o => o.Customer)
-                                 .Include(o => o.OrderDetails)
-                                 .ThenInclude(od => od.Product)
-                                 .ToListAsync();
+            var orders = await _context.Orders!
+                .Include(o => o.Customer)  // Include the Customer data
+                .OrderBy(o => o.o_id)  // Order by o_id ascending
+                .ToListAsync();
+
+            // Create a simplified, flattened response without references
+            var result = orders.Select(o => new
+            {
+                o.o_id,
+                o.c_id,
+                // Format the date correctly and assign it as a string
+                o_date = o.o_date.ToString("yyyy-MM-dd HH:mm:ss"),  // Format the date here
+                o.total_amount,
+                // Convert enum to its string name
+                status = Enum.GetName(typeof(OrderStatus), o.status),  // Assuming OrderStatus is your enum type
+                customer = new
+                {
+                    o.Customer.first_name,
+                }
+            }).ToList();
+
+            return Ok(result);
         }
 
         // GET: api/Orders/:id

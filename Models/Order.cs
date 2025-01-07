@@ -1,6 +1,6 @@
 namespace backend.Models
 {
-    public enum OrderStatus 
+    public enum OrderStatus
     {
         Pending,
         Processing,
@@ -22,7 +22,7 @@ namespace backend.Models
 
         public decimal total_amount { get; set; } // total_amount
 
-        public OrderStatus  status { get; set; } = OrderStatus.Pending; // status with default
+        public OrderStatus status { get; set; } = OrderStatus.Pending; // status with default
 
         public required Customer Customer { get; set; } // `required` modifier
 

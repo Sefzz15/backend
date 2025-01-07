@@ -274,3 +274,6 @@ C:\Users\arsse\Documents\VisualStudioProjects\backend\obj\Debug\net9.0\backend.g
 C:\Users\arsse\Documents\VisualStudioProjects\backend\obj\Debug\net9.0\ref\backend.dll
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\Newtonsoft.Json.dll
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\System.Net.WebSockets.WebSocketProtocol.dll
+C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\Microsoft.AspNetCore.JsonPatch.dll
+C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\Newtonsoft.Json.Bson.dll
