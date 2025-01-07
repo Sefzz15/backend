@@ -2,7 +2,6 @@ using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using backend.Services;
 
 namespace backend.Controllers
 {
@@ -16,16 +15,38 @@ namespace backend.Controllers
         {
             _context = context;
         }
-
         // GET: api/OrderDetails
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDetail>>> GetOrderDetails()
         {
-            return await _context.OrderDetails!
-                                 .Include(od => od.Order)
-                                 .Include(od => od.Product)
-                                 .ToListAsync();
+            var orderDetails = await _context.OrderDetails!
+                .Include(od => od.Order)    // Include the Order data
+                .Include(od => od.Product)  // Include the Product data
+                .OrderBy(od => od.o_details_id)    // Order by od_id or any other field you want
+                .ToListAsync();
+
+            // Create a simplified, flattened response without references
+            var result = orderDetails.Select(od => new
+            {
+                od.o_details_id,
+                od.o_id,
+                od.p_id,
+                quantity = od.quantity,
+                price = od.price,
+                order = new
+                {
+                    od.o_details_id,
+                },
+                product = new
+                {
+                    product_id = od.Product.p_id,
+                }
+            }).ToList();
+
+
+            return Ok(result);
         }
+
 
         // GET: api/OrderDetails/:id
         [HttpGet("{id}")]

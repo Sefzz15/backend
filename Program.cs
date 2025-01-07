@@ -10,7 +10,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowLocalhost",
         policy =>
         {
-            policy.WithOrigins("http://localhost:4200") // Άδεια στο Angular frontend
+            policy.WithOrigins("http://localhost:4200")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -46,7 +46,5 @@ var app = builder.Build();
 app.UseCors("AllowLocalhost");
 app.UseRouting();
 app.MapControllers();
-
-app.MapControllers();  // Ρύθμιση των API endpoints
 
 app.Run();
