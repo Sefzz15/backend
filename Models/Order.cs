@@ -5,7 +5,7 @@ namespace backend.Models
         Pending,
         Processing,
         Shipped,
-        Delivered,
+        Completed,
         Cancelled,
         Refunded,
         Failed,
