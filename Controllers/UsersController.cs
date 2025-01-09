@@ -28,7 +28,6 @@ namespace backend.Controllers
         {
             _logger.LogInformation($"Login attempt for username: {loginRequest.Username}");
 
-            // Check if the user exists
             var user = await _context.Users!
                 .FirstOrDefaultAsync(u => u.uname == loginRequest.Username);
 
@@ -38,19 +37,22 @@ namespace backend.Controllers
                 return Unauthorized(new { message = "Invalid credentials" });
             }
 
-            // Check if the password matches
             if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.upass))
             {
                 _logger.LogWarning($"Invalid password attempt for user: {loginRequest.Username}");
                 return Unauthorized(new { message = "Invalid credentials" });
             }
 
-            // Generate the JWT token
+            // Generate JWT Token
             var token = _jwtService.GenerateJwtToken(user.uname);
 
-            _logger.LogInformation($"User {loginRequest.Username} logged in successfully.");
-            return Ok(new { message = "Login successful!", token });
+            // Log successful login with the userID
+            _logger.LogInformation($"User {loginRequest.Username} (ID: {user.uid}) logged in successfully.");
+
+            // Return the token and userID
+            return Ok(new { message = "Login successful!", token, userID = user.uid });
         }
+
 
 
         // Class for login data
@@ -135,7 +137,7 @@ namespace backend.Controllers
             {
                 return NotFound("User not found.");
             }
-            
+
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
             return Ok(new { message = "User deleted successfully!" });
