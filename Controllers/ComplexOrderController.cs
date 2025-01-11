@@ -24,13 +24,13 @@ namespace backend.Controllers
             {
                 try
                 {
-                    // Creating the JSON
+                    // Create JSON string for products
                     var productJson = JsonConvert.SerializeObject(request.Products);
 
-                    // Logging the JSON for debugging
+                    // Log for debugging
                     Console.WriteLine($"Products JSON: {productJson}");
 
-                    // Defining parameters for the SQL query
+                    // Prepare parameters for the SQL call
                     var customerIdParam = new MySqlParameter("@CustomerId", MySqlDbType.Int32)
                     {
                         Value = request.CustomerId
@@ -41,23 +41,31 @@ namespace backend.Controllers
                         Value = productJson
                     };
 
-                    // Executing the stored procedure
+                    // Execute the stored procedure
                     var result = await _context.Database.ExecuteSqlRawAsync(
                         "CALL CreateComplexOrder(@CustomerId, @ProductsJson)",
                         customerIdParam, productsJsonParam
                     );
 
-                    // Committing the transaction
+                    // If the procedure succeeds, commit the transaction
                     await transaction.CommitAsync();
 
+                    // Return success message to client
                     return Ok(new { message = "Order placed successfully!" });
                 }
+                catch (MySqlException ex)
+                {
+                    // Logging for the MySQL error
+                    Console.Error.WriteLine($"MySQL Error: {ex.Message}");
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, new { message = "Database error while placing the order.", error = ex.Message });
+                }
+
                 catch (Exception ex)
                 {
+                    // Handle unexpected errors
                     await transaction.RollbackAsync();
-                    // Logging the error for debugging
-                    Console.Error.WriteLine($"Error occurred: {ex.Message}");
-                    Console.Error.WriteLine($"Stack Trace: {ex.StackTrace}");
+                    Console.Error.WriteLine($"Error: {ex.Message}");
                     return StatusCode(500, new { message = "Failed to place order.", error = ex.Message });
                 }
             }
