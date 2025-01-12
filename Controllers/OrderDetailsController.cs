@@ -15,17 +15,18 @@ namespace backend.Controllers
         {
             _context = context;
         }
+
         // GET: api/OrderDetails
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrderDetail>>> GetOrderDetails()
         {
             var orderDetails = await _context.OrderDetails!
-                .Include(od => od.Order)    // Include the Order data
-                .Include(od => od.Product)  // Include the Product data
-                .OrderBy(od => od.o_details_id)    // Order by od_id or any other field you want
+                .Include(od => od.order)    // Include the Order data
+                .Include(od => od.product)  // Include the Product data
+                .OrderBy(od => od.o_details_id)
                 .ToListAsync();
 
-            // Create a simplified, flattened response without references
+            // Simplified response
             var result = orderDetails.Select(od => new
             {
                 od.o_details_id,
@@ -35,34 +36,32 @@ namespace backend.Controllers
                 price = od.price,
                 order = new
                 {
-                    od.o_details_id,
+                    od.order.o_id, // Accessing the navigation property correctly
                 },
                 product = new
                 {
-                    product_id = od.Product.p_id,
+                    product_id = od.product.p_id,
                 }
             }).ToList();
 
-
             return Ok(result);
         }
-
 
         // GET: api/OrderDetails/:id
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDetail>> GetOrderDetail(int id)
         {
             var orderDetail = await _context.OrderDetails!
-                                            .Include(od => od.Order)
-                                            .Include(od => od.Product)
-                                            .FirstOrDefaultAsync(od => od.o_details_id == id);
+                .Include(od => od.order)
+                .Include(od => od.product)
+                .FirstOrDefaultAsync(od => od.o_details_id == id);
 
             if (orderDetail == null)
             {
                 return NotFound();
             }
 
-            return orderDetail;
+            return Ok(orderDetail); // Ensure response type matches the ActionResult
         }
 
         // POST: api/OrderDetails

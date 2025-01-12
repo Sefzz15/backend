@@ -21,7 +21,7 @@ namespace backend.Controllers
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
             var orders = await _context.Orders!
-                .Include(o => o.Customer)  // Include the Customer data
+                .Include(o => o.customer)  // Include the Customer data
                 .OrderBy(o => o.o_id)  // Order by o_id ascending
                 .ToListAsync();
 
@@ -34,10 +34,9 @@ namespace backend.Controllers
                 o_date = o.o_date.ToString("yyyy-MM-dd HH:mm:ss"),  // Format the date here
                 o.total_amount,
                 // Convert enum to its string name
-                status = Enum.GetName(typeof(OrderStatus), o.status),  // Assuming OrderStatus is your enum type
                 customer = new
                 {
-                    o.Customer.first_name,
+                    o.customer.first_name,
                 }
             }).ToList();
 
@@ -49,9 +48,9 @@ namespace backend.Controllers
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
             var order = await _context.Orders!
-                                       .Include(o => o.Customer)
-                                       .Include(o => o.OrderDetails)
-                                       .ThenInclude(od => od.Product)
+                                       .Include(o => o.customer)
+                                       .Include(o => o.order_details)
+                                       .ThenInclude(od => od.product)
                                        .FirstOrDefaultAsync(o => o.o_id == id);
 
             if (order == null)

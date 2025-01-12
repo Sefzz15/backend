@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using backend.Data;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace backend.Controllers
 {
@@ -80,8 +81,9 @@ namespace backend.Controllers
 
         public class ProductOrderRequest
         {
-            public int ProductId { get; set; }
-            public int Quantity { get; set; }
+            public int p_id { get; set; }
+
+            public int quantity { get; set; }
         }
     }
 }
