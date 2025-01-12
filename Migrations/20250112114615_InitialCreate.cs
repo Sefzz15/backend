@@ -40,9 +40,9 @@ namespace backend.Migrations
                 {
                     p_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    p_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    description = table.Column<string>(type: "TEXT", nullable: true),
-                    price = table.Column<decimal>(type: "DECIMAL(10,2)", nullable: false),
+                    p_name = table.Column<string>(type: "varchar(255)", nullable: false),
+                    description = table.Column<string>(type: "longtext", nullable: true),
+                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     stock_quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -74,9 +74,8 @@ namespace backend.Migrations
                     o_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     c_id = table.Column<int>(type: "int", nullable: false),
-                    o_date = table.Column<DateTime>(type: "TIMESTAMP", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    total_amount = table.Column<decimal>(type: "DECIMAL(10,2)", nullable: false),
-                    status = table.Column<string>(type: "varchar(20)", maxLength: 20, nullable: false, defaultValue: "Pending")
+                    o_date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    total_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -99,7 +98,7 @@ namespace backend.Migrations
                     o_id = table.Column<int>(type: "int", nullable: false),
                     p_id = table.Column<int>(type: "int", nullable: false),
                     quantity = table.Column<int>(type: "int", nullable: false),
-                    price = table.Column<decimal>(type: "DECIMAL(10,2)", nullable: false)
+                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {

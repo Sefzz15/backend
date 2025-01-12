@@ -11,7 +11,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250111114712_InitialCreate")]
+    [Migration("20250112114615_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -74,19 +74,10 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("o_date")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TIMESTAMP")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<string>("status")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("varchar(20)")
-                        .HasDefaultValue("Pending");
+                        .HasColumnType("datetime(6)");
 
                     b.Property<decimal>("total_amount")
-                        .HasColumnType("DECIMAL(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("o_id");
 
@@ -108,7 +99,7 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("price")
-                        .HasColumnType("DECIMAL(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("quantity")
                         .HasColumnType("int");
@@ -133,15 +124,14 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("description")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("longtext");
 
                     b.Property<string>("p_name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<decimal>("price")
-                        .HasColumnType("DECIMAL(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("stock_quantity")
                         .HasColumnType("int");
@@ -151,7 +141,7 @@ namespace backend.Migrations
                     b.HasIndex("p_name")
                         .IsUnique();
 
-                    b.ToTable("Products", null, t =>
+                    b.ToTable("Products", t =>
                         {
                             t.HasCheckConstraint("CHK_Product_Quantity_Price", "stock_quantity >= 0 AND price > 0");
                         });
@@ -181,42 +171,42 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Order", b =>
                 {
-                    b.HasOne("backend.Models.Customer", "Customer")
-                        .WithMany("Orders")
+                    b.HasOne("backend.Models.Customer", "customer")
+                        .WithMany("orders")
                         .HasForeignKey("c_id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Customer");
+                    b.Navigation("customer");
                 });
 
             modelBuilder.Entity("backend.Models.OrderDetail", b =>
                 {
-                    b.HasOne("backend.Models.Order", "Order")
-                        .WithMany("OrderDetails")
+                    b.HasOne("backend.Models.Order", "order")
+                        .WithMany("order_details")
                         .HasForeignKey("o_id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("backend.Models.Product", "Product")
+                    b.HasOne("backend.Models.Product", "product")
                         .WithMany()
                         .HasForeignKey("p_id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Order");
+                    b.Navigation("order");
 
-                    b.Navigation("Product");
+                    b.Navigation("product");
                 });
 
             modelBuilder.Entity("backend.Models.Customer", b =>
                 {
-                    b.Navigation("Orders");
+                    b.Navigation("orders");
                 });
 
             modelBuilder.Entity("backend.Models.Order", b =>
                 {
-                    b.Navigation("OrderDetails");
+                    b.Navigation("order_details");
                 });
 #pragma warning restore 612, 618
         }

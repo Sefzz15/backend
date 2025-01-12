@@ -1,31 +1,23 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace backend.Models
 {
-    public enum OrderStatus
-    {
-        Pending,
-        Processing,
-        Shipped,
-        Completed,
-        Cancelled,
-        Refunded,
-        Failed,
-        OnHold
-    }
-
     public class Order
     {
-        public int o_id { get; set; } // o_id
+        public int o_id { get; set; }
 
-        public int c_id { get; set; } // c_id
+        [ForeignKey(nameof(Customer))]
+        public int c_id { get; set; }
 
-        public DateTime o_date { get; set; } // o_date
+        public DateTime o_date { get; set; }
 
-        public decimal total_amount { get; set; } // total_amount
+        public decimal total_amount { get; set; }
 
-        public OrderStatus status { get; set; } = OrderStatus.Pending; // status with default
+        [Required]
+        public required Customer customer { get; set; }
 
-        public required Customer Customer { get; set; } // `required` modifier
-
-        public required ICollection<OrderDetail> OrderDetails { get; set; } // `required` modifier
+        [Required]
+        public ICollection<OrderDetail> order_details { get; set; } = new List<OrderDetail>();
     }
 }
