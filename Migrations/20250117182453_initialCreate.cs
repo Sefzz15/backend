@@ -7,31 +7,12 @@ using MySql.EntityFrameworkCore.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AlterDatabase()
-                .Annotation("MySQL:Charset", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "Customers",
-                columns: table => new
-                {
-                    c_id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    first_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    last_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    email = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    phone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: true),
-                    address = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true),
-                    city = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Customers", x => x.c_id);
-                })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateTable(
@@ -64,6 +45,32 @@ namespace backend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.uid);
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "Customers",
+                columns: table => new
+                {
+                    c_id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    uid = table.Column<int>(type: "int", nullable: false),
+                    first_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
+                    last_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
+                    email = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
+                    phone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: true),
+                    address = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true),
+                    city = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Customers", x => x.c_id);
+                    table.ForeignKey(
+                        name: "FK_Customers_Users_uid",
+                        column: x => x.uid,
+                        principalTable: "Users",
+                        principalColumn: "uid",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -126,6 +133,12 @@ namespace backend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Customers_uid",
+                table: "Customers",
+                column: "uid",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_o_id_p_id",
                 table: "OrderDetails",
                 columns: new[] { "o_id", "p_id" },
@@ -161,9 +174,6 @@ namespace backend.Migrations
                 name: "OrderDetails");
 
             migrationBuilder.DropTable(
-                name: "Users");
-
-            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
@@ -171,6 +181,9 @@ namespace backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Customers");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

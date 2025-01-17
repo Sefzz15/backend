@@ -29,6 +29,11 @@ namespace backend.Data
             {
                 entity.HasKey(e => e.c_id);
                 entity.HasIndex(e => e.email).IsUnique();
+
+                entity.HasOne(c => c.User)
+                    .WithOne()
+                    .HasForeignKey<Customer>(c => c.uid)
+                    .OnDelete(DeleteBehavior.Cascade); 
             });
 
             // Products Table
