@@ -53,9 +53,15 @@ namespace backend.Migrations
                         .HasMaxLength(15)
                         .HasColumnType("varchar(15)");
 
+                    b.Property<int>("uid")
+                        .HasColumnType("int");
+
                     b.HasKey("c_id");
 
                     b.HasIndex("email")
+                        .IsUnique();
+
+                    b.HasIndex("uid")
                         .IsUnique();
 
                     b.ToTable("Customers");
@@ -164,6 +170,17 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("backend.Models.Customer", b =>
+                {
+                    b.HasOne("backend.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("backend.Models.Customer", "uid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("backend.Models.Order", b =>

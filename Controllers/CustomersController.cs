@@ -43,19 +43,34 @@ namespace backend.Controllers
         }
 
 
-        // Create (POST) using hashing
+        // Create (POST)
         [HttpPost]
         public async Task<IActionResult> CreateCustomer([FromBody] Customer customer)
         {
             if (customer == null)
             {
+                _logger.LogError("Customer data is null.");
                 return BadRequest("Invalid customer data.");
             }
 
-            _context.Customers!.Add(customer);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Customer created successfully!", customer });
+            _logger.LogInformation("Received customer data: {firstName} {lastName}, email: {email}, uid: {uid}",
+                customer.first_name, customer.last_name, customer.email, customer.uid);
+
+            try
+            {
+                _context.Customers!.Add(customer);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Customer successfully created with ID: {customerId}", customer.c_id);
+                return Ok(new { message = "Customer created successfully!", customer });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Error while saving customer: {errorMessage}", ex.Message);
+                return StatusCode(500, "An error occurred while creating the customer.");
+            }
         }
+
 
 
         // Update (PUT) using hashing
