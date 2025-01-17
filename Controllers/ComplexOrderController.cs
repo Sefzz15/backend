@@ -1,9 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using backend.Data;
-using MySql.Data.MySqlClient;
-using Newtonsoft.Json;
-using System.Text.Json.Serialization;
+using backend.Models;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
@@ -18,72 +17,113 @@ namespace backend.Controllers
             _context = context;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateComplexOrder([FromBody] ComplexOrderRequest request)
+        [HttpPost("create-order")]
+        public async Task<IActionResult> CreateOrder([FromBody] OrderRequestWrapper orderRequestWrapper)
         {
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            if (orderRequestWrapper?.OrderRequest == null)
             {
-                try
+                return BadRequest("Order request is missing.");
+            }
+
+            var orderRequest = orderRequestWrapper.OrderRequest;
+
+            // Εύρεση του customer με το uid
+            var customer = await _context.Customers
+                .Where(c => c != null)  // Ensure customers are not null
+                .Join(_context.Users.Where(u => u != null),  // Ensure users are not null
+                    customer => customer.uid,
+                    user => user.uid,
+                    (customer, user) => new { customer, user })
+                .Where(x => x.user.uid == int.Parse(orderRequest.Uid))
+                .Select(x => x.customer)
+                .FirstOrDefaultAsync();
+
+
+
+            if (customer == null)
+            {
+                return BadRequest("Customer not found.");
+            }
+
+            orderRequest.c_id = customer.c_id.ToString();
+
+            var order = new Order
+            {
+                c_id = customer.c_id,
+                o_date = DateTime.Now,
+                total_amount = 0,
+                customer = customer
+            };
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            decimal totalAmount = 0;
+
+            if (orderRequest.Products != null)
+            {
+                foreach (var productItem in orderRequest.Products)
                 {
-                    // Create JSON string for products
-                    var productJson = JsonConvert.SerializeObject(request.Products);
+                    if (productItem == null) continue;  // Skip if product item is null
 
-                    // Log for debugging
-                    Console.WriteLine($"Products JSON: {productJson}");
+                    var product = await _context.Products
+                        .Where(p => p.p_id == productItem.ProductId)
+                        .FirstOrDefaultAsync();
 
-                    // Prepare parameters for the SQL call
-                    var customerIdParam = new MySqlParameter("@CustomerId", MySqlDbType.Int32)
+                    if (product == null)
                     {
-                        Value = request.CustomerId
+                        return BadRequest($"Product with ID {productItem.ProductId} not found.");
+                    }
+
+                    if (product.stock_quantity < productItem.Quantity)
+                    {
+                        return BadRequest($"Not enough stock for product {productItem.ProductId}");
+                    }
+
+                    product.stock_quantity -= productItem.Quantity;
+
+                    var orderDetail = new OrderDetail
+                    {
+                        o_id = order.o_id,
+                        p_id = product.p_id,
+                        quantity = productItem.Quantity,
+                        price = product.price,
+                        order = order,
+                        product = product
                     };
 
-                    var productsJsonParam = new MySqlParameter("@ProductsJson", MySqlDbType.JSON)
-                    {
-                        Value = productJson
-                    };
 
-                    // Execute the stored procedure
-                    var result = await _context.Database.ExecuteSqlRawAsync(
-                        "CALL CreateComplexOrder(@CustomerId, @ProductsJson)",
-                        customerIdParam, productsJsonParam
-                    );
-
-                    // If the procedure succeeds, commit the transaction
-                    await transaction.CommitAsync();
-
-                    // Return success message to client
-                    return Ok(new { message = "Order placed successfully!" });
-                }
-                catch (MySqlException ex)
-                {
-                    // Logging for the MySQL error
-                    Console.Error.WriteLine($"MySQL Error: {ex.Message}");
-                    await transaction.RollbackAsync();
-                    return StatusCode(500, new { message = "Database error while placing the order.", error = ex.Message });
-                }
-
-                catch (Exception ex)
-                {
-                    // Handle unexpected errors
-                    await transaction.RollbackAsync();
-                    Console.Error.WriteLine($"Error: {ex.Message}");
-                    return StatusCode(500, new { message = "Failed to place order.", error = ex.Message });
+                    _context.OrderDetails.Add(orderDetail);
+                    totalAmount += productItem.Quantity * product.price;
                 }
             }
-        }
 
-        // Models for the request payload
-        public class ComplexOrderRequest
-        {
-            public int CustomerId { get; set; }
-            public List<ProductOrderRequest> Products { get; set; } = new();
-        }
 
-        public class ProductOrderRequest
-        {
-            public int p_id { get; set; }
+            order.total_amount = totalAmount;
+            await _context.SaveChangesAsync();
 
-            public int quantity { get; set; }
+            return Ok(new { message = "Order created successfully", orderId = order.o_id });
         }
+    }
+
+
+    // Ενημερωμένο μοντέλο για το αίτημα
+    public class OrderRequestWrapper
+    {
+        public OrderRequest OrderRequest { get; set; } = new OrderRequest();
+    }
+
+    public class OrderRequest
+    {
+        public string Uid { get; set; } = string.Empty;
+        public string? c_id { get; set; } // nullable
+        public List<ProductItem>? Products { get; set; } = new List<ProductItem>(); // nullable και αρχικοποιημένο
+    }
+
+
+    public class ProductItem
+    {
+        public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 }
