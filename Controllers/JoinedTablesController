@@ -1,67 +1,67 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using backend.Data;
-using backend.Models;
-using backend.Services;
+// using Microsoft.AspNetCore.Mvc;
+// using Microsoft.EntityFrameworkCore;
+// using backend.Data;
+// using backend.Models;
+// using backend.Services;
 
-namespace backend.Controllers
-{
-    using (var context = new YourDbContext())
-{
-    var data = context.Orders
-        .Include(o => o.Customer)
-        .Include(o => o.OrderDetails)
-        .ThenInclude(od => od.Product)
-        .Select(o => new
-        {
-            CustomerName = o.Customer.FirstName,
-            OrderID = o.OId,
-            Products = o.OrderDetails.Select(od => new
-            {
-                ProductName = od.Product.PName,
-                Quantity = od.Quantity,
-                PricePerUnit = od.Price,
-                TotalPriceForProduct = od.Quantity * od.Price
-            }).ToList()
-        })
-        .ToList();
-}
+// namespace backend.Controllers
+// {
+//     using (var context = new YourDbContext())
+// {
+//     var data = context.Orders
+//         .Include(o => o.Customer)
+//         .Include(o => o.OrderDetails)
+//         .ThenInclude(od => od.Product)
+//         .Select(o => new
+//         {
+//             CustomerName = o.Customer.FirstName,
+//             OrderID = o.OId,
+//             Products = o.OrderDetails.Select(od => new
+//             {
+//                 ProductName = od.Product.PName,
+//                 Quantity = od.Quantity,
+//                 PricePerUnit = od.Price,
+//                 TotalPriceForProduct = od.Quantity * od.Price
+//             }).ToList()
+//         })
+//         .ToList();
+// }
 
 
 
-[ApiController]
-[Route("api/[controller]")]
-public class CustomersProductsOrdersController : ControllerBase
-{
-    private readonly YourDbContext _context;
+// [ApiController]
+// [Route("api/[controller]")]
+// public class CustomersProductsOrdersController : ControllerBase
+// {
+//     private readonly YourDbContext _context;
 
-    public CustomersProductsOrdersController(YourDbContext context)
-    {
-        _context = context;
-    }
+//     public CustomersProductsOrdersController(YourDbContext context)
+//     {
+//         _context = context;
+//     }
 
-    [HttpGet]
-    public IActionResult GetOrders()
-    {
-        var data = _context.Orders
-            .Include(o => o.Customer)
-            .Include(o => o.OrderDetails)
-            .ThenInclude(od => od.Product)
-            .Select(o => new
-            {
-                CustomerName = o.Customer.FirstName,
-                OrderID = o.OId,
-                Products = o.OrderDetails.Select(od => new
-                {
-                    ProductName = od.Product.PName,
-                    Quantity = od.Quantity,
-                    PricePerUnit = od.Price,
-                    TotalPriceForProduct = od.Quantity * od.Price
-                }).ToList()
-            })
-            .ToList();
+//     [HttpGet]
+//     public IActionResult GetOrders()
+//     {
+//         var data = _context.Orders
+//             .Include(o => o.Customer)
+//             .Include(o => o.OrderDetails)
+//             .ThenInclude(od => od.Product)
+//             .Select(o => new
+//             {
+//                 CustomerName = o.Customer.FirstName,
+//                 OrderID = o.OId,
+//                 Products = o.OrderDetails.Select(od => new
+//                 {
+//                     ProductName = od.Product.PName,
+//                     Quantity = od.Quantity,
+//                     PricePerUnit = od.Price,
+//                     TotalPriceForProduct = od.Quantity * od.Price
+//                 }).ToList()
+//             })
+//             .ToList();
 
-        return Ok(data);
-    }
-}
-}
+//         return Ok(data);
+//     }
+// }
+// }

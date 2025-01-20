@@ -27,7 +27,8 @@
 //         {
 //             if (customer == null)
 //             {
-//                 _logger.LogWarning("Received null customer object");
+//    
+//             _logger.LogWarning("Received null customer object");
 //                 return BadRequest("Invalid customer data.");
 //             }
 

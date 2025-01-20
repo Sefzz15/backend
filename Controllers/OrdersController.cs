@@ -22,14 +22,14 @@ namespace backend.Controllers
         {
             var orders = await _context.Orders!
                 .Include(o => o.customer)  // Include the Customer data
-                .OrderBy(o => o.o_id)  // Order by o_id ascending
+                .OrderBy(o => o.oid)  // Order by oid ascending
                 .ToListAsync();
 
             // Create a simplified, flattened response without references
             var result = orders.Select(o => new
             {
-                o.o_id,
-                o.c_id,
+                o.oid,
+                o.cid,
                 // Format the date correctly and assign it as a string
                 o_date = o.o_date.ToString("yyyy-MM-dd HH:mm:ss"),  // Format the date here
                 o.total_amount,
@@ -51,7 +51,7 @@ namespace backend.Controllers
                                        .Include(o => o.customer)
                                        .Include(o => o.order_details)
                                        .ThenInclude(od => od.product)
-                                       .FirstOrDefaultAsync(o => o.o_id == id);
+                                       .FirstOrDefaultAsync(o => o.oid == id);
 
             if (order == null)
             {
@@ -68,14 +68,14 @@ namespace backend.Controllers
             _context.Orders!.Add(order);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOrder), new { id = order.o_id }, order);
+            return CreatedAtAction(nameof(GetOrder), new { id = order.oid }, order);
         }
 
         // PUT: api/Orders/:id
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrder(int id, Order order)
         {
-            if (id != order.o_id)
+            if (id != order.oid)
             {
                 return BadRequest();
             }
@@ -119,7 +119,7 @@ namespace backend.Controllers
 
         private bool OrderExists(int id)
         {
-            return _context.Orders!.Any(e => e.o_id == id);
+            return _context.Orders!.Any(e => e.oid == id);
         }
     }
 }

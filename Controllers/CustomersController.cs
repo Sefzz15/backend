@@ -61,7 +61,7 @@ namespace backend.Controllers
                 _context.Customers!.Add(customer);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Customer successfully created with ID: {customerId}", customer.c_id);
+                _logger.LogInformation("Customer successfully created with ID: {customerId}", customer.cid);
                 return Ok(new { message = "Customer created successfully!", customer });
             }
             catch (Exception ex)
@@ -85,7 +85,7 @@ namespace backend.Controllers
             }
 
             // Update other customer properties
-            customer.c_id = updatedCustomer.c_id;
+            customer.cid = updatedCustomer.cid;
             customer.first_name = updatedCustomer.first_name;
             customer.last_name = updatedCustomer.last_name;
             customer.email = updatedCustomer.email;
