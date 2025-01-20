@@ -37,12 +37,7 @@ namespace backend.Controllers
             try
             {
                 var customer = await _context.Customers
-                    .Join(_context.Users.Where(u => u != null), // Ensure users are not null
-                        customer => customer.uid,
-                        user => user.uid,
-                        (customer, user) => new { customer, user })
-                    .Where(x => x.user.uid == int.Parse(orderRequest.Uid))
-                    .Select(x => x.customer)
+                    .Where(c => c.uid == orderRequest.Uid)  // Εδώ χρησιμοποιούμε το Uid ως int
                     .FirstOrDefaultAsync();
 
                 if (customer == null)
@@ -50,11 +45,11 @@ namespace backend.Controllers
                     return BadRequest("Customer not found.");
                 }
 
-                orderRequest.c_id = customer.c_id.ToString();
+                orderRequest.cid = customer.cid.ToString();
 
                 var order = new Order
                 {
-                    c_id = customer.c_id,
+                    cid = customer.cid,
                     o_date = DateTime.Now,
                     total_amount = 0,
                     customer = customer
@@ -81,7 +76,7 @@ namespace backend.Controllers
                         }
 
                         var product = await _context.Products
-                            .Where(p => p.p_id == productItem.ProductId)
+                            .Where(p => p.pid == productItem.ProductId)
                             .FirstOrDefaultAsync();
 
                         if (product == null)
@@ -89,17 +84,17 @@ namespace backend.Controllers
                             return BadRequest($"Product with ID {productItem.ProductId} not found.");
                         }
 
-                        if (product.stock_quantity < productItem.Quantity)
+                        if (product.stock < productItem.Quantity)
                         {
                             return BadRequest($"Not enough stock for product {productItem.ProductId}");
                         }
 
-                        product.stock_quantity -= productItem.Quantity;
+                        product.stock -= productItem.Quantity;
 
                         var orderDetail = new OrderDetail
                         {
-                            o_id = order.o_id,
-                            p_id = product.p_id,
+                            oid = order.oid,
+                            pid = product.pid,
                             quantity = productItem.Quantity,
                             price = product.price,
                             order = order,
@@ -121,7 +116,7 @@ namespace backend.Controllers
                 // Commit transaction
                 await transaction.CommitAsync();
 
-                return Ok(new { message = "Order created successfully", orderId = order.o_id });
+                return Ok(new { message = "Order created successfully", orderId = order.oid });
             }
             catch (Exception ex)
             {
@@ -131,6 +126,7 @@ namespace backend.Controllers
             }
         }
 
+
     }
     public class OrderRequestWrapper
     {
@@ -139,10 +135,11 @@ namespace backend.Controllers
 
     public class OrderRequest
     {
-        public string Uid { get; set; } = string.Empty;
-        public string? c_id { get; set; } // nullable
+        public int Uid { get; set; }  // Αλλάξαμε το τύπο σε int
+        public string? cid { get; set; } //nullable
         public List<ProductItem>? Products { get; set; } = new List<ProductItem>();
     }
+
 
 
     public class ProductItem

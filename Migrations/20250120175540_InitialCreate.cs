@@ -7,7 +7,7 @@ using MySql.EntityFrameworkCore.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreate : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,17 +19,17 @@ namespace backend.Migrations
                 name: "Products",
                 columns: table => new
                 {
-                    p_id = table.Column<int>(type: "int", nullable: false)
+                    pid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     p_name = table.Column<string>(type: "varchar(255)", nullable: false),
                     description = table.Column<string>(type: "longtext", nullable: true),
                     price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    stock_quantity = table.Column<int>(type: "int", nullable: false)
+                    stock = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.p_id);
-                    table.CheckConstraint("CHK_Product_Quantity_Price", "stock_quantity >= 0 AND price > 0");
+                    table.PrimaryKey("PK_Products", x => x.pid);
+                    table.CheckConstraint("CHK_Product_Quantity_Price", "stock >= 0 AND price > 0");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -52,7 +52,7 @@ namespace backend.Migrations
                 name: "Customers",
                 columns: table => new
                 {
-                    c_id = table.Column<int>(type: "int", nullable: false)
+                    cid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     uid = table.Column<int>(type: "int", nullable: false),
                     first_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
@@ -64,7 +64,7 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Customers", x => x.c_id);
+                    table.PrimaryKey("PK_Customers", x => x.cid);
                     table.ForeignKey(
                         name: "FK_Customers_Users_uid",
                         column: x => x.uid,
@@ -78,20 +78,20 @@ namespace backend.Migrations
                 name: "Orders",
                 columns: table => new
                 {
-                    o_id = table.Column<int>(type: "int", nullable: false)
+                    oid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    c_id = table.Column<int>(type: "int", nullable: false),
+                    cid = table.Column<int>(type: "int", nullable: false),
                     o_date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     total_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Orders", x => x.o_id);
+                    table.PrimaryKey("PK_Orders", x => x.oid);
                     table.ForeignKey(
-                        name: "FK_Orders_Customers_c_id",
-                        column: x => x.c_id,
+                        name: "FK_Orders_Customers_cid",
+                        column: x => x.cid,
                         principalTable: "Customers",
-                        principalColumn: "c_id",
+                        principalColumn: "cid",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
@@ -102,8 +102,8 @@ namespace backend.Migrations
                 {
                     o_details_id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    o_id = table.Column<int>(type: "int", nullable: false),
-                    p_id = table.Column<int>(type: "int", nullable: false),
+                    oid = table.Column<int>(type: "int", nullable: false),
+                    pid = table.Column<int>(type: "int", nullable: false),
                     quantity = table.Column<int>(type: "int", nullable: false),
                     price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
@@ -112,16 +112,16 @@ namespace backend.Migrations
                     table.PrimaryKey("PK_OrderDetails", x => x.o_details_id);
                     table.CheckConstraint("CHK_OrderDetail_Quantity_Price", "quantity > 0 AND price > 0");
                     table.ForeignKey(
-                        name: "FK_OrderDetails_Orders_o_id",
-                        column: x => x.o_id,
+                        name: "FK_OrderDetails_Orders_oid",
+                        column: x => x.oid,
                         principalTable: "Orders",
-                        principalColumn: "o_id",
+                        principalColumn: "oid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_OrderDetails_Products_p_id",
-                        column: x => x.p_id,
+                        name: "FK_OrderDetails_Products_pid",
+                        column: x => x.pid,
                         principalTable: "Products",
-                        principalColumn: "p_id",
+                        principalColumn: "pid",
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
@@ -139,20 +139,20 @@ namespace backend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_o_id_p_id",
+                name: "IX_OrderDetails_oid_pid",
                 table: "OrderDetails",
-                columns: new[] { "o_id", "p_id" },
+                columns: new[] { "oid", "pid" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_p_id",
+                name: "IX_OrderDetails_pid",
                 table: "OrderDetails",
-                column: "p_id");
+                column: "pid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_c_id",
+                name: "IX_Orders_cid",
                 table: "Orders",
-                column: "c_id");
+                column: "cid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_p_name",

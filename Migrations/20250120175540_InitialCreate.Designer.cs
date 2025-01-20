@@ -11,8 +11,8 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250117182453_initialCreate")]
-    partial class initialCreate
+    [Migration("20250120175540_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Customer", b =>
                 {
-                    b.Property<int>("c_id")
+                    b.Property<int>("cid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -59,7 +59,7 @@ namespace backend.Migrations
                     b.Property<int>("uid")
                         .HasColumnType("int");
 
-                    b.HasKey("c_id");
+                    b.HasKey("cid");
 
                     b.HasIndex("email")
                         .IsUnique();
@@ -72,11 +72,11 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Order", b =>
                 {
-                    b.Property<int>("o_id")
+                    b.Property<int>("oid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("c_id")
+                    b.Property<int>("cid")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("o_date")
@@ -85,9 +85,9 @@ namespace backend.Migrations
                     b.Property<decimal>("total_amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.HasKey("o_id");
+                    b.HasKey("oid");
 
-                    b.HasIndex("c_id");
+                    b.HasIndex("cid");
 
                     b.ToTable("Orders");
                 });
@@ -98,10 +98,10 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<int>("o_id")
+                    b.Property<int>("oid")
                         .HasColumnType("int");
 
-                    b.Property<int>("p_id")
+                    b.Property<int>("pid")
                         .HasColumnType("int");
 
                     b.Property<decimal>("price")
@@ -112,9 +112,9 @@ namespace backend.Migrations
 
                     b.HasKey("o_details_id");
 
-                    b.HasIndex("p_id");
+                    b.HasIndex("pid");
 
-                    b.HasIndex("o_id", "p_id")
+                    b.HasIndex("oid", "pid")
                         .IsUnique();
 
                     b.ToTable("OrderDetails", t =>
@@ -125,7 +125,7 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Product", b =>
                 {
-                    b.Property<int>("p_id")
+                    b.Property<int>("pid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
@@ -139,17 +139,17 @@ namespace backend.Migrations
                     b.Property<decimal>("price")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("stock_quantity")
+                    b.Property<int>("stock")
                         .HasColumnType("int");
 
-                    b.HasKey("p_id");
+                    b.HasKey("pid");
 
                     b.HasIndex("p_name")
                         .IsUnique();
 
                     b.ToTable("Products", t =>
                         {
-                            t.HasCheckConstraint("CHK_Product_Quantity_Price", "stock_quantity >= 0 AND price > 0");
+                            t.HasCheckConstraint("CHK_Product_Quantity_Price", "stock >= 0 AND price > 0");
                         });
                 });
 
@@ -177,20 +177,20 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Customer", b =>
                 {
-                    b.HasOne("backend.Models.User", "User")
+                    b.HasOne("backend.Models.User", "user")
                         .WithOne()
                         .HasForeignKey("backend.Models.Customer", "uid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("user");
                 });
 
             modelBuilder.Entity("backend.Models.Order", b =>
                 {
                     b.HasOne("backend.Models.Customer", "customer")
                         .WithMany("orders")
-                        .HasForeignKey("c_id")
+                        .HasForeignKey("cid")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -201,13 +201,13 @@ namespace backend.Migrations
                 {
                     b.HasOne("backend.Models.Order", "order")
                         .WithMany("order_details")
-                        .HasForeignKey("o_id")
+                        .HasForeignKey("oid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("backend.Models.Product", "product")
                         .WithMany()
-                        .HasForeignKey("p_id")
+                        .HasForeignKey("pid")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

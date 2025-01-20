@@ -5,13 +5,13 @@ namespace backend.Models
 {
     public class Customer
     {
-        public int c_id { get; set; }
+        public int cid { get; set; }
 
         [Required]
         public int uid { get; set; }
 
         [ForeignKey(nameof(uid))]
-        public User? User { get; set; }
+        public User? user { get; set; }
 
         [Required]
         [MaxLength(50)]

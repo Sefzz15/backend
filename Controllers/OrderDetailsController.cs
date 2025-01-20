@@ -30,17 +30,17 @@ namespace backend.Controllers
             var result = orderDetails.Select(od => new
             {
                 od.o_details_id,
-                od.o_id,
-                od.p_id,
+                od.oid,
+                od.pid,
                 quantity = od.quantity,
                 price = od.price,
                 order = new
                 {
-                    od.order.o_id, // Accessing the navigation property correctly
+                    od.order.oid, // Accessing the navigation property correctly
                 },
                 product = new
                 {
-                    product_id = od.product.p_id,
+                    product_id = od.product.pid,
                 }
             }).ToList();
 

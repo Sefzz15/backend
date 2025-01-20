@@ -49,7 +49,7 @@ namespace backend.Controllers
 
             await _context.Products!.AddAsync(product);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetProductById), new { id = product.p_id }, product);
+            return CreatedAtAction(nameof(GetProductById), new { id = product.pid }, product);
         }
 
         // PUT: api/products/{id}
