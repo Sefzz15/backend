@@ -21,12 +21,11 @@ namespace backend.Controllers
         public async Task<ActionResult<IEnumerable<OrderDetail>>> GetOrderDetails()
         {
             var orderDetails = await _context.OrderDetails!
-                .Include(od => od.order)    // Include the Order data
-                .Include(od => od.product)  // Include the Product data
+                .Include(od => od.order)
+                .Include(od => od.product)
                 .OrderBy(od => od.o_details_id)
                 .ToListAsync();
 
-            // Simplified response
             var result = orderDetails.Select(od => new
             {
                 od.o_details_id,
@@ -36,7 +35,7 @@ namespace backend.Controllers
                 price = od.price,
                 order = new
                 {
-                    od.order.oid, // Accessing the navigation property correctly
+                    od.order.oid,
                 },
                 product = new
                 {
@@ -61,7 +60,7 @@ namespace backend.Controllers
                 return NotFound();
             }
 
-            return Ok(orderDetail); // Ensure response type matches the ActionResult
+            return Ok(orderDetail);
         }
 
         // POST: api/OrderDetails
