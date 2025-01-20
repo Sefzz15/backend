@@ -21,16 +21,14 @@ namespace backend.Controllers
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
             var orders = await _context.Orders!
-                .Include(o => o.customer)  // Include the Customer data
-                .OrderBy(o => o.oid)  // Order by oid ascending
+                .Include(o => o.customer)
+                .OrderBy(o => o.oid)
                 .ToListAsync();
 
-            // Create a simplified, flattened response without references
             var result = orders.Select(o => new
             {
                 o.oid,
                 o.cid,
-                // Format the date correctly and assign it as a string
                 o_date = o.o_date.ToString("yyyy-MM-dd HH:mm:ss"),  // Format the date here
                 o.total_amount,
                 // Convert enum to its string name

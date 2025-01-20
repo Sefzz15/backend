@@ -73,18 +73,16 @@ namespace backend.Controllers
 
 
 
-        // Update (PUT) using hashing
+        // Update (PUT) 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateCustomer(int id, [FromBody] Customer updatedCustomer)
         {
-            // Find the customer by ID
             var customer = await _context.Customers!.FindAsync(id);
             if (customer == null)
             {
                 return NotFound("Customer not found.");
             }
 
-            // Update other customer properties
             customer.cid = updatedCustomer.cid;
             customer.first_name = updatedCustomer.first_name;
             customer.last_name = updatedCustomer.last_name;

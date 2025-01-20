@@ -37,7 +37,7 @@ namespace backend.Controllers
             try
             {
                 var customer = await _context.Customers
-                    .Where(c => c.uid == orderRequest.Uid)  // Εδώ χρησιμοποιούμε το Uid ως int
+                    .Where(c => c.uid == orderRequest.Uid)
                     .FirstOrDefaultAsync();
 
                 if (customer == null)
@@ -45,7 +45,7 @@ namespace backend.Controllers
                     return BadRequest("Customer not found.");
                 }
 
-                orderRequest.cid = customer.cid.ToString();
+                orderRequest.cid = customer.cid;
 
                 var order = new Order
                 {
@@ -133,12 +133,13 @@ namespace backend.Controllers
         public OrderRequest OrderRequest { get; set; } = new OrderRequest();
     }
 
-    public class OrderRequest
-    {
-        public int Uid { get; set; }  // Αλλάξαμε το τύπο σε int
-        public string? cid { get; set; } //nullable
-        public List<ProductItem>? Products { get; set; } = new List<ProductItem>();
-    }
+public class OrderRequest
+{
+    public int Uid { get; set; }
+    public int cid { get; set; }
+    public List<ProductItem>? Products { get; set; } = new List<ProductItem>();
+}
+
 
 
 
