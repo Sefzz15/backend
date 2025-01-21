@@ -39,6 +39,11 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderDetailsService, OrderDetailsService>();
 
 
 var app = builder.Build();

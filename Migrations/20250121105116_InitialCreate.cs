@@ -21,8 +21,8 @@ namespace backend.Migrations
                 {
                     pid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    p_name = table.Column<string>(type: "varchar(255)", nullable: false),
-                    description = table.Column<string>(type: "longtext", nullable: true),
+                    p_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
+                    description = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true),
                     price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     stock = table.Column<int>(type: "int", nullable: false)
                 },
@@ -39,7 +39,7 @@ namespace backend.Migrations
                 {
                     uid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    uname = table.Column<string>(type: "varchar(255)", nullable: false),
+                    uname = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     upass = table.Column<string>(type: "longtext", nullable: false)
                 },
                 constraints: table =>
@@ -59,7 +59,7 @@ namespace backend.Migrations
                     last_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     email = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     phone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: true),
-                    address = table.Column<string>(type: "varchar(255)", maxLength: 255, nullable: true),
+                    address = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true),
                     city = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
@@ -104,8 +104,8 @@ namespace backend.Migrations
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     oid = table.Column<int>(type: "int", nullable: false),
                     pid = table.Column<int>(type: "int", nullable: false),
-                    quantity = table.Column<int>(type: "int", nullable: false),
-                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    quantity = table.Column<int>(type: "int", maxLength: 5, nullable: false),
+                    price = table.Column<decimal>(type: "decimal(18,2)", maxLength: 10, nullable: false)
                 },
                 constraints: table =>
                 {
