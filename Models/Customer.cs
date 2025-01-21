@@ -5,6 +5,7 @@ namespace backend.Models
 {
     public class Customer
     {
+        [Key]
         public int cid { get; set; }
 
         [Required]
@@ -28,7 +29,7 @@ namespace backend.Models
         [MaxLength(15)]
         public string? phone { get; set; }
 
-        [MaxLength(255)]
+        [MaxLength(50)]
         public string? address { get; set; }
 
         [Required]

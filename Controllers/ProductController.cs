@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using backend.Data;
 using backend.Models;
+using backend.Services;
 
 namespace backend.Controllers
 {
@@ -9,12 +8,12 @@ namespace backend.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IProductService _productService;
         private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(ApplicationDbContext context, ILogger<ProductsController> logger)
+        public ProductsController(IProductService productService, ILogger<ProductsController> logger)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _productService = productService ?? throw new ArgumentNullException(nameof(productService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -22,7 +21,7 @@ namespace backend.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllProducts()
         {
-            var products = await _context.Products!.ToListAsync();
+            var products = await _productService.GetAllProductsAsync();
             return Ok(products);
         }
 
@@ -30,11 +29,10 @@ namespace backend.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int id)
         {
-            var product = await _context.Products!.FindAsync(id);
+            var product = await _productService.GetProductByIdAsync(id);
             if (product == null)
-            {
                 return NotFound(new { message = "Product not found." });
-            }
+
             return Ok(product);
         }
 
@@ -43,27 +41,19 @@ namespace backend.Controllers
         public async Task<IActionResult> CreateProduct([FromBody] Product product)
         {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
-            await _context.Products!.AddAsync(product);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetProductById), new { id = product.pid }, product);
+            var createdProduct = await _productService.CreateProductAsync(product);
+            return CreatedAtAction(nameof(GetProductById), new { id = createdProduct.pid }, createdProduct);
         }
 
         // PUT: api/products/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product updatedProduct)
         {
-            var product = await _context.Products!.FindAsync(id);
+            var product = await _productService.UpdateProductAsync(id, updatedProduct);
             if (product == null)
-            {
                 return NotFound(new { message = "Product not found." });
-            }
-
-            _context.Entry(product).CurrentValues.SetValues(updatedProduct);
-            await _context.SaveChangesAsync();
 
             return Ok(new { message = "Product updated successfully!", product });
         }
@@ -72,14 +62,10 @@ namespace backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            var product = await _context.Products!.FindAsync(id);
-            if (product == null)
-            {
+            var result = await _productService.DeleteProductAsync(id);
+            if (!result)
                 return NotFound(new { message = "Product not found." });
-            }
 
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
             return Ok(new { message = "Product deleted successfully!" });
         }
     }

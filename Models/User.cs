@@ -8,6 +8,7 @@ namespace backend.Models
         public int uid { get; set; }
 
         [Required]
+        [MaxLength(50)]
         public string uname { get; set; }
 
         [Required]

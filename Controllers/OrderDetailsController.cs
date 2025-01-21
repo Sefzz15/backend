@@ -2,6 +2,7 @@ using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using backend.Services;
 
 namespace backend.Controllers
 {
@@ -9,52 +10,24 @@ namespace backend.Controllers
     [ApiController]
     public class OrderDetailsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IOrderDetailsService _orderDetailsService;
 
-        public OrderDetailsController(ApplicationDbContext context)
+        public OrderDetailsController(IOrderDetailsService orderDetailsService)
         {
-            _context = context;
+            _orderDetailsService = orderDetailsService;
         }
 
-        // GET: api/OrderDetails
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDetail>>> GetOrderDetails()
+        public async Task<ActionResult<IEnumerable<object>>> GetOrderDetails()
         {
-            var orderDetails = await _context.OrderDetails!
-                .Include(od => od.order)
-                .Include(od => od.product)
-                .OrderBy(od => od.o_details_id)
-                .ToListAsync();
-
-            var result = orderDetails.Select(od => new
-            {
-                od.o_details_id,
-                od.oid,
-                od.pid,
-                quantity = od.quantity,
-                price = od.price,
-                order = new
-                {
-                    od.order.oid,
-                },
-                product = new
-                {
-                    product_id = od.product.pid,
-                }
-            }).ToList();
-
-            return Ok(result);
+            var orderDetails = await _orderDetailsService.GetOrderDetailsAsync();
+            return Ok(orderDetails);
         }
 
-        // GET: api/OrderDetails/:id
         [HttpGet("{id}")]
         public async Task<ActionResult<OrderDetail>> GetOrderDetail(int id)
         {
-            var orderDetail = await _context.OrderDetails!
-                .Include(od => od.order)
-                .Include(od => od.product)
-                .FirstOrDefaultAsync(od => od.o_details_id == id);
-
+            var orderDetail = await _orderDetailsService.GetOrderDetailByIdAsync(id);
             if (orderDetail == null)
             {
                 return NotFound();
@@ -63,65 +36,35 @@ namespace backend.Controllers
             return Ok(orderDetail);
         }
 
-        // POST: api/OrderDetails
         [HttpPost]
         public async Task<ActionResult<OrderDetail>> PostOrderDetail(OrderDetail orderDetail)
         {
-            _context.OrderDetails!.Add(orderDetail);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetOrderDetail), new { id = orderDetail.o_details_id }, orderDetail);
+            var createdOrderDetail = await _orderDetailsService.AddOrderDetailAsync(orderDetail);
+            return CreatedAtAction(nameof(GetOrderDetail), new { id = createdOrderDetail.o_details_id }, createdOrderDetail);
         }
 
-        // PUT: api/OrderDetails/:id
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrderDetail(int id, OrderDetail orderDetail)
         {
-            if (id != orderDetail.o_details_id)
+            var success = await _orderDetailsService.UpdateOrderDetailAsync(id, orderDetail);
+            if (!success)
             {
                 return BadRequest();
             }
 
-            _context.Entry(orderDetail).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderDetailExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
             return NoContent();
         }
 
-        // DELETE: api/OrderDetails/:id
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrderDetail(int id)
         {
-            var orderDetail = await _context.OrderDetails!.FindAsync(id);
-            if (orderDetail == null)
+            var success = await _orderDetailsService.DeleteOrderDetailAsync(id);
+            if (!success)
             {
                 return NotFound();
             }
 
-            _context.OrderDetails.Remove(orderDetail);
-            await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        private bool OrderDetailExists(int id)
-        {
-            return _context.OrderDetails!.Any(e => e.o_details_id == id);
         }
     }
 }

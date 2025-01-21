@@ -2,6 +2,7 @@ using backend.Data;
 using backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using backend.Services;
 
 namespace backend.Controllers
 {
@@ -9,48 +10,24 @@ namespace backend.Controllers
     [ApiController]
     public class OrdersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IOrderService _orderService;
 
-        public OrdersController(ApplicationDbContext context)
+        public OrdersController(IOrderService orderService)
         {
-            _context = context;
+            _orderService = orderService;
         }
 
-        // GET: api/Orders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<object>>> GetOrders()
         {
-            var orders = await _context.Orders!
-                .Include(o => o.customer)
-                .OrderBy(o => o.oid)
-                .ToListAsync();
-
-            var result = orders.Select(o => new
-            {
-                o.oid,
-                o.cid,
-                o_date = o.o_date.ToString("yyyy-MM-dd HH:mm:ss"),  // Format the date here
-                o.total_amount,
-                // Convert enum to its string name
-                customer = new
-                {
-                    o.customer.first_name,
-                }
-            }).ToList();
-
-            return Ok(result);
+            var orders = await _orderService.GetOrdersAsync();
+            return Ok(orders);
         }
 
-        // GET: api/Orders/:id
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
-            var order = await _context.Orders!
-                                       .Include(o => o.customer)
-                                       .Include(o => o.order_details)
-                                       .ThenInclude(od => od.product)
-                                       .FirstOrDefaultAsync(o => o.oid == id);
-
+            var order = await _orderService.GetOrderByIdAsync(id);
             if (order == null)
             {
                 return NotFound();
@@ -59,65 +36,35 @@ namespace backend.Controllers
             return order;
         }
 
-        // POST: api/Orders
         [HttpPost]
         public async Task<ActionResult<Order>> PostOrder(Order order)
         {
-            _context.Orders!.Add(order);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetOrder), new { id = order.oid }, order);
+            var createdOrder = await _orderService.AddOrderAsync(order);
+            return CreatedAtAction(nameof(GetOrder), new { id = createdOrder.oid }, createdOrder);
         }
 
-        // PUT: api/Orders/:id
         [HttpPut("{id}")]
         public async Task<IActionResult> PutOrder(int id, Order order)
         {
-            if (id != order.oid)
+            var success = await _orderService.UpdateOrderAsync(id, order);
+            if (!success)
             {
                 return BadRequest();
             }
 
-            _context.Entry(order).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
             return NoContent();
         }
 
-        // DELETE: api/Orders/:id
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
-            var order = await _context.Orders!.FindAsync(id);
-            if (order == null)
+            var success = await _orderService.DeleteOrderAsync(id);
+            if (!success)
             {
                 return NotFound();
             }
 
-            _context.Orders.Remove(order);
-            await _context.SaveChangesAsync();
-
             return NoContent();
-        }
-
-        private bool OrderExists(int id)
-        {
-            return _context.Orders!.Any(e => e.oid == id);
         }
     }
 }

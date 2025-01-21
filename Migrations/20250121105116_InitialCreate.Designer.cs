@@ -11,7 +11,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250120175540_InitialCreate")]
+    [Migration("20250121105116_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -29,8 +29,8 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("address")
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("city")
                         .IsRequired()
@@ -105,9 +105,11 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("price")
+                        .HasMaxLength(10)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("quantity")
+                        .HasMaxLength(5)
                         .HasColumnType("int");
 
                     b.HasKey("o_details_id");
@@ -130,11 +132,13 @@ namespace backend.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("description")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("p_name")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<decimal>("price")
                         .HasColumnType("decimal(18,2)");
@@ -161,7 +165,8 @@ namespace backend.Migrations
 
                     b.Property<string>("uname")
                         .IsRequired()
-                        .HasColumnType("varchar(255)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("upass")
                         .IsRequired()
@@ -177,13 +182,13 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Customer", b =>
                 {
-                    b.HasOne("backend.Models.User", "user")
+                    b.HasOne("backend.Models.User", "User")
                         .WithOne()
                         .HasForeignKey("backend.Models.Customer", "uid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("user");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("backend.Models.Order", b =>
