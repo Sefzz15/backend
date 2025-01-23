@@ -42,10 +42,6 @@ namespace backend.Services
             customer.first_name = updatedCustomer.first_name;
             customer.last_name = updatedCustomer.last_name;
             customer.email = updatedCustomer.email;
-            customer.phone = updatedCustomer.phone;
-            customer.address = updatedCustomer.address;
-            customer.city = updatedCustomer.city;
-
             await _context.SaveChangesAsync();
             return customer;
         }

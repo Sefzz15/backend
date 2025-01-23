@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,18 +9,22 @@ namespace backend.Models
     {
         [Key]
         public int oid { get; set; }
-
-        [ForeignKey(nameof(Customer))]
         public int cid { get; set; }
+
+        [ForeignKey(nameof(cid))]
+        public Customer Customer { get; set; } // Navigation property
+
+        public int pid { get; set; }
+
+        [ForeignKey(nameof(pid))]
+        public Product Product { get; set; } // Navigation property
 
         public DateTime o_date { get; set; }
 
-        public decimal total_amount { get; set; }
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
+        public int quantity { get; set; }
 
-        [Required]
-        public Customer customer { get; set; }
-
-        [Required]
-        public List<OrderDetail> order_details { get; } = new();
+        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than zero.")]
+        public decimal price { get; set; }
     }
 }
