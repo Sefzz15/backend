@@ -1,6 +1,9 @@
 using backend.Data;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace backend.Services
 {
@@ -13,83 +16,55 @@ namespace backend.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<object>> GetOrdersAsync()
+        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
         {
-            var orders = await _context.Orders!
-                .Include(o => o.customer)
-                .OrderBy(o => o.oid)
+            return await _context.Orders
+                .Include(o => o.Customer)
+                .Include(o => o.Product)
                 .ToListAsync();
-
-            return orders.Select(o => new
-            {
-                o.oid,
-                o.cid,
-                o_date = o.o_date.ToString("yyyy-MM-dd HH:mm:ss"),
-                o.total_amount,
-                customer = new
-                {
-                    o.customer.first_name,
-                }
-            });
         }
 
-        public async Task<Order?> GetOrderByIdAsync(int id)
+        public async Task<Order> GetOrderByIdAsync(int id)
         {
-            return await _context.Orders!
-                .Include(o => o.customer)
-                .Include(o => o.order_details)
-                .ThenInclude(od => od.product)
-                .FirstOrDefaultAsync(o => o.oid == id);
+            return await _context.Orders
+                .Include(o => o.Customer) // Include the customer
+                .Include(o => o.Product)  // Include the product
+                .FirstOrDefaultAsync(o => o.oid == id); // Find by ID
         }
 
-        public async Task<Order> AddOrderAsync(Order order)
+        // Create a new order
+        public async Task<Order> CreateOrderAsync(Order order)
         {
-            _context.Orders!.Add(order);
+            _context.Orders.Add(order);
             await _context.SaveChangesAsync();
             return order;
         }
 
-        public async Task<bool> UpdateOrderAsync(int id, Order order)
+        public async Task<Order> UpdateOrderAsync(int id, Order order)
         {
-            if (id != order.oid)
-            {
-                return false;
-            }
+            var existingOrder = await _context.Orders.FindAsync(id);
+            if (existingOrder == null)
+                return null;
 
-            _context.Entry(order).State = EntityState.Modified;
+            existingOrder.o_date = order.o_date;
+            existingOrder.quantity = order.quantity;
+            existingOrder.price = order.price;
+            existingOrder.cid = order.cid;
+            existingOrder.pid = order.pid;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!OrderExists(id))
-                {
-                    return false;
-                }
-
-                throw;
-            }
+            await _context.SaveChangesAsync();
+            return existingOrder;
         }
 
         public async Task<bool> DeleteOrderAsync(int id)
         {
-            var order = await _context.Orders!.FindAsync(id);
+            var order = await _context.Orders.FindAsync(id);
             if (order == null)
-            {
                 return false;
-            }
 
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
             return true;
-        }
-
-        private bool OrderExists(int id)
-        {
-            return _context.Orders!.Any(e => e.oid == id);
         }
     }
 }

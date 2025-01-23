@@ -11,7 +11,7 @@ using backend.Data;
 namespace backend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250121105116_InitialCreate")]
+    [Migration("20250123152733_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -28,15 +28,6 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("address")
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
-                    b.Property<string>("city")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
                     b.Property<string>("email")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -51,10 +42,6 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
-
-                    b.Property<string>("phone")
-                        .HasMaxLength(15)
-                        .HasColumnType("varchar(15)");
 
                     b.Property<int>("uid")
                         .HasColumnType("int");
@@ -82,47 +69,22 @@ namespace backend.Migrations
                     b.Property<DateTime>("o_date")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<decimal>("total_amount")
+                    b.Property<int>("pid")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("price")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("quantity")
+                        .HasColumnType("int");
 
                     b.HasKey("oid");
 
                     b.HasIndex("cid");
 
-                    b.ToTable("Orders");
-                });
-
-            modelBuilder.Entity("backend.Models.OrderDetail", b =>
-                {
-                    b.Property<int>("o_details_id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("oid")
-                        .HasColumnType("int");
-
-                    b.Property<int>("pid")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("price")
-                        .HasMaxLength(10)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("quantity")
-                        .HasMaxLength(5)
-                        .HasColumnType("int");
-
-                    b.HasKey("o_details_id");
-
                     b.HasIndex("pid");
 
-                    b.HasIndex("oid", "pid")
-                        .IsUnique();
-
-                    b.ToTable("OrderDetails", t =>
-                        {
-                            t.HasCheckConstraint("CHK_OrderDetail_Quantity_Price", "quantity > 0 AND price > 0");
-                        });
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("backend.Models.Product", b =>
@@ -130,10 +92,6 @@ namespace backend.Migrations
                     b.Property<int>("pid")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    b.Property<string>("description")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("p_name")
                         .IsRequired()
@@ -193,42 +151,26 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Models.Order", b =>
                 {
-                    b.HasOne("backend.Models.Customer", "customer")
+                    b.HasOne("backend.Models.Customer", "Customer")
                         .WithMany("orders")
                         .HasForeignKey("cid")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("customer");
-                });
-
-            modelBuilder.Entity("backend.Models.OrderDetail", b =>
-                {
-                    b.HasOne("backend.Models.Order", "order")
-                        .WithMany("order_details")
-                        .HasForeignKey("oid")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("backend.Models.Product", "product")
+                    b.HasOne("backend.Models.Product", "Product")
                         .WithMany()
                         .HasForeignKey("pid")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("order");
+                    b.Navigation("Customer");
 
-                    b.Navigation("product");
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("backend.Models.Customer", b =>
                 {
                     b.Navigation("orders");
-                });
-
-            modelBuilder.Entity("backend.Models.Order", b =>
-                {
-                    b.Navigation("order_details");
                 });
 #pragma warning restore 612, 618
         }

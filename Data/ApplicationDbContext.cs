@@ -13,7 +13,6 @@ namespace backend.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderDetail> OrderDetails { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +32,7 @@ namespace backend.Data
                 entity.HasOne(c => c.User)
                     .WithOne()
                     .HasForeignKey<Customer>(c => c.uid)
-                    .OnDelete(DeleteBehavior.Cascade); 
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Products Table
@@ -50,32 +49,17 @@ namespace backend.Data
             {
                 entity.HasKey(e => e.oid);
 
-                entity.HasOne(o => o.customer)
+                // Relationship Order -> Customer (Many-to-One)
+                entity.HasOne(o => o.Customer)
                     .WithMany(c => c.orders)
                     .HasForeignKey(o => o.cid)
-                    .OnDelete(DeleteBehavior.Restrict);
-            });
+                    .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of customer with orders
 
-            // OrderDetails Table
-            modelBuilder.Entity<OrderDetail>(entity =>
-            {
-                entity.HasKey(e => e.o_details_id);
-
-                entity.HasOne(od => od.order)
-                    .WithMany(o => o.order_details)
-                    .HasForeignKey(od => od.oid)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(od => od.product)
+                // Relationship Order -> Product (Many-to-One)
+                entity.HasOne(o => o.Product)
                     .WithMany()
-                    .HasForeignKey(od => od.pid)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasIndex(od => new { od.oid, od.pid })
-                    .IsUnique();
-
-                entity.ToTable(t =>
-                    t.HasCheckConstraint("CHK_OrderDetail_Quantity_Price", "quantity > 0 AND price > 0"));
+                    .HasForeignKey(o => o.pid)
+                    .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of product with orders
             });
         }
     }

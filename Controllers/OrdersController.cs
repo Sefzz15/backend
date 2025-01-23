@@ -1,58 +1,58 @@
-using backend.Data;
 using backend.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using backend.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController : ControllerBase
+    public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
 
-        public OrdersController(IOrderService orderService)
+        public OrderController(IOrderService orderService)
         {
             _orderService = orderService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<object>>> GetOrders()
+        public async Task<IActionResult> GetAllOrders()
         {
-            var orders = await _orderService.GetOrdersAsync();
+            var orders = await _orderService.GetAllOrdersAsync();
             return Ok(orders);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Order>> GetOrder(int id)
+        public async Task<IActionResult> GetOrderById(int id)
         {
             var order = await _orderService.GetOrderByIdAsync(id);
             if (order == null)
-            {
                 return NotFound();
-            }
 
-            return order;
+            return Ok(order);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrder(Order order)
+        public async Task<IActionResult> CreateOrder([FromBody] Order order)
         {
-            var createdOrder = await _orderService.AddOrderAsync(order);
-            return CreatedAtAction(nameof(GetOrder), new { id = createdOrder.oid }, createdOrder);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var createdOrder = await _orderService.CreateOrderAsync(order);
+            return CreatedAtAction(nameof(GetOrderById), new { id = createdOrder.oid }, createdOrder);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutOrder(int id, Order order)
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] Order order)
         {
-            var success = await _orderService.UpdateOrderAsync(id, order);
-            if (!success)
-            {
-                return BadRequest();
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            return NoContent();
+            var updatedOrder = await _orderService.UpdateOrderAsync(id, order);
+            if (updatedOrder == null)
+                return NotFound();
+
+            return Ok(updatedOrder);
         }
 
         [HttpDelete("{id}")]
@@ -60,9 +60,7 @@ namespace backend.Controllers
         {
             var success = await _orderService.DeleteOrderAsync(id);
             if (!success)
-            {
                 return NotFound();
-            }
 
             return NoContent();
         }

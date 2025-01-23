@@ -10,9 +10,6 @@ namespace backend.Models
         [MaxLength(50)]
         public string p_name { get; set; }
 
-        [MaxLength(100)]
-        public string? description { get; set; }
-
         [Required]
         public decimal price { get; set; }
 

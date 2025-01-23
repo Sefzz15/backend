@@ -22,7 +22,6 @@ namespace backend.Migrations
                     pid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     p_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    description = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: true),
                     price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     stock = table.Column<int>(type: "int", nullable: false)
                 },
@@ -57,10 +56,7 @@ namespace backend.Migrations
                     uid = table.Column<int>(type: "int", nullable: false),
                     first_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
                     last_name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    email = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false),
-                    phone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: true),
-                    address = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: true),
-                    city = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
+                    email = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -81,8 +77,10 @@ namespace backend.Migrations
                     oid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
                     cid = table.Column<int>(type: "int", nullable: false),
+                    pid = table.Column<int>(type: "int", nullable: false),
                     o_date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    total_amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                    quantity = table.Column<int>(type: "int", nullable: false),
+                    price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -93,32 +91,8 @@ namespace backend.Migrations
                         principalTable: "Customers",
                         principalColumn: "cid",
                         onDelete: ReferentialAction.Restrict);
-                })
-                .Annotation("MySQL:Charset", "utf8mb4");
-
-            migrationBuilder.CreateTable(
-                name: "OrderDetails",
-                columns: table => new
-                {
-                    o_details_id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
-                    oid = table.Column<int>(type: "int", nullable: false),
-                    pid = table.Column<int>(type: "int", nullable: false),
-                    quantity = table.Column<int>(type: "int", maxLength: 5, nullable: false),
-                    price = table.Column<decimal>(type: "decimal(18,2)", maxLength: 10, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderDetails", x => x.o_details_id);
-                    table.CheckConstraint("CHK_OrderDetail_Quantity_Price", "quantity > 0 AND price > 0");
                     table.ForeignKey(
-                        name: "FK_OrderDetails_Orders_oid",
-                        column: x => x.oid,
-                        principalTable: "Orders",
-                        principalColumn: "oid",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OrderDetails_Products_pid",
+                        name: "FK_Orders_Products_pid",
                         column: x => x.pid,
                         principalTable: "Products",
                         principalColumn: "pid",
@@ -139,20 +113,14 @@ namespace backend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_oid_pid",
-                table: "OrderDetails",
-                columns: new[] { "oid", "pid" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_pid",
-                table: "OrderDetails",
-                column: "pid");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Orders_cid",
                 table: "Orders",
                 column: "cid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_pid",
+                table: "Orders",
+                column: "pid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_p_name",
@@ -171,16 +139,13 @@ namespace backend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "OrderDetails");
-
-            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Products");
+                name: "Customers");
 
             migrationBuilder.DropTable(
-                name: "Customers");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "Users");
