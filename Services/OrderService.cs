@@ -1,70 +1,44 @@
-using backend.Data;
-using backend.Models;
+
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace backend.Services
+public class OrderService
 {
-    public class OrderService : IOrderService
+    private readonly AppDbContext _context;
+
+    public OrderService(AppDbContext context)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+    }
 
-        public OrderService(ApplicationDbContext context)
+    public async Task<IEnumerable<Order>> GetAllOrders()
+    {
+        return await _context.Orders.Include(o => o.Customer).Include(o => o.Product).ToListAsync();
+    }
+
+    public async Task<Order?> GetOrderById(int id)
+    {
+        return await _context.Orders.Include(o => o.Customer).Include(o => o.Product).FirstOrDefaultAsync(o => o.Oid == id);
+    }
+
+    public async Task AddOrder(Order order)
+    {
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateOrder(Order order)
+    {
+        _context.Orders.Update(order);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteOrder(int id)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order != null)
         {
-            _context = context;
-        }
-
-        public async Task<IEnumerable<Order>> GetAllOrdersAsync()
-        {
-            return await _context.Orders
-                .Include(o => o.Customer)
-                .Include(o => o.Product)
-                .ToListAsync();
-        }
-
-        public async Task<Order> GetOrderByIdAsync(int id)
-        {
-            return await _context.Orders
-                .Include(o => o.Customer) // Include the customer
-                .Include(o => o.Product)  // Include the product
-                .FirstOrDefaultAsync(o => o.oid == id); // Find by ID
-        }
-
-        // Create a new order
-        public async Task<Order> CreateOrderAsync(Order order)
-        {
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-            return order;
-        }
-
-        public async Task<Order> UpdateOrderAsync(int id, Order order)
-        {
-            var existingOrder = await _context.Orders.FindAsync(id);
-            if (existingOrder == null)
-                return null;
-
-            existingOrder.o_date = order.o_date;
-            existingOrder.quantity = order.quantity;
-            existingOrder.price = order.price;
-            existingOrder.cid = order.cid;
-            existingOrder.pid = order.pid;
-
-            await _context.SaveChangesAsync();
-            return existingOrder;
-        }
-
-        public async Task<bool> DeleteOrderAsync(int id)
-        {
-            var order = await _context.Orders.FindAsync(id);
-            if (order == null)
-                return false;
-
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
-            return true;
         }
     }
 }

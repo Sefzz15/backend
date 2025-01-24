@@ -1,60 +1,43 @@
-using backend.Data;
-using backend.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace backend.Services
+public class CustomerService
 {
-    public class CustomerService : ICustomerService
+    private readonly AppDbContext _context;
+
+    public CustomerService(AppDbContext context)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+    }
 
-        public CustomerService(ApplicationDbContext context)
+    public async Task<IEnumerable<Customer>> GetAllCustomers()
+    {
+        return await _context.Customers.Include(c => c.User).ToListAsync();
+    }
+
+    public async Task<Customer?> GetCustomerById(int id)
+    {
+        return await _context.Customers.Include(c => c.User).FirstOrDefaultAsync(c => c.Cid == id);
+    }
+
+    public async Task AddCustomer(Customer customer)
+    {
+        _context.Customers.Add(customer);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateCustomer(Customer customer)
+    {
+        _context.Customers.Update(customer);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteCustomer(int id)
+    {
+        var customer = await _context.Customers.FindAsync(id);
+        if (customer != null)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-        }
-
-        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
-        {
-            return await _context.Customers!.ToListAsync();
-        }
-
-        public async Task<Customer?> GetCustomerByIdAsync(int id)
-        {
-            return await _context.Customers!.FindAsync(id);
-        }
-
-        public async Task<Customer> CreateCustomerAsync(Customer customer)
-        {
-            if (customer == null)
-                throw new ArgumentNullException(nameof(customer));
-
-            await _context.Customers!.AddAsync(customer);
-            await _context.SaveChangesAsync();
-            return customer;
-        }
-
-        public async Task<Customer?> UpdateCustomerAsync(int id, Customer updatedCustomer)
-        {
-            var customer = await _context.Customers!.FindAsync(id);
-            if (customer == null)
-                return null;
-
-            customer.first_name = updatedCustomer.first_name;
-            customer.last_name = updatedCustomer.last_name;
-            customer.email = updatedCustomer.email;
-            await _context.SaveChangesAsync();
-            return customer;
-        }
-
-        public async Task<bool> DeleteCustomerAsync(int id)
-        {
-            var customer = await _context.Customers!.FindAsync(id);
-            if (customer == null)
-                return false;
-
             _context.Customers.Remove(customer);
             await _context.SaveChangesAsync();
-            return true;
         }
     }
 }

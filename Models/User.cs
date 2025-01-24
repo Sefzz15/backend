@@ -1,17 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
-namespace backend.Models
+public class User
 {
-    public class User
-    {
-        [Key]
-        public int uid { get; set; }
+    [Key]
+    public int Uid { get; set; }
+    public string Uname { get; set; } = string.Empty;
+    public string Upass { get; set; } = string.Empty;
 
-        [Required]
-        [MaxLength(50)]
-        public string uname { get; set; }
-
-        [Required]
-        public string upass { get; set; }
-    }
+    // Navigation property
+    [JsonIgnore]
+    public ICollection<Customer>? Customers { get; set; }
 }

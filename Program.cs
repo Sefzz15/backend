@@ -1,7 +1,5 @@
-using backend.Data;
 using Microsoft.EntityFrameworkCore;
 using backend.Services;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,17 +25,15 @@ if (string.IsNullOrEmpty(connectionString))
 }
 
 // Add DbContext with MySQL provider
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySQL(connectionString)
 );
 
 // Add controllers for API endpoints with JSON options to handle reference loops
-builder.Services.AddControllers()
-    // .AddJsonOptions(options =>
-    // {
-    //     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
-    // })
-    ;
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+});
 
 builder.Services.AddLogging();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
@@ -45,10 +41,15 @@ builder.Services.AddSingleton<JwtService>();
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<OrderService>();
+
+// builder.Services.AddScoped<IUserService, UserService>();
+// builder.Services.AddScoped<IProductService, ProductService>();
+// builder.Services.AddScoped<ICustomerService, CustomerService>();
+// builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
