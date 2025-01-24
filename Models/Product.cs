@@ -1,19 +1,15 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
-namespace backend.Models
+public class Product
 {
-    public class Product
-    {   [Key]
-        public int pid { get; set; }
+    [Key]
+    public int Pid { get; set; }
+    public string Pname { get; set; } = string.Empty;
+    public int Price { get; set; }
+    public int Stock { get; set; }
 
-        [Required]
-        [MaxLength(50)]
-        public string p_name { get; set; }
-
-        [Required]
-        public decimal price { get; set; }
-
-        [Required]
-        public int stock { get; set; }
-    }
+    // Navigation property
+    [JsonIgnore]
+    public ICollection<Order>? Orders { get; set; }
 }
