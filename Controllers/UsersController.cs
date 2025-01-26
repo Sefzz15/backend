@@ -26,6 +26,25 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
+    // New endpoint for getting user ID by username
+    [HttpGet("getIdByUsername/{username}")]
+    public async Task<IActionResult> GetUserIdByUsername(string username)
+    {
+        if (string.IsNullOrEmpty(username))
+        {
+            return BadRequest(new { message = "Username is required." });
+        }
+
+        var userId = await _userService.GetUserIdByUsernameAsync(username);
+
+        if (userId == null)
+        {
+            return NotFound(new { message = "User not found." });
+        }
+
+        return Ok(new { userId });
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
