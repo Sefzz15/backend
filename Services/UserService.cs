@@ -24,7 +24,7 @@ public class UserService
         var user = await _context.Users
                                   .FirstOrDefaultAsync(u => u.Uname == username);
 
-        return user?.Uid;  // Return the user ID or null if not found
+        return user?.Uid;  // Return the user ID or null if not found.
     }
 
     public async Task AddUser(User user)
