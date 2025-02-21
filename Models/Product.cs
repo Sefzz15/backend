@@ -12,4 +12,8 @@ public class Product
     // Navigation property
     [JsonIgnore]
     public ICollection<Order>? Orders { get; set; }
+
+    // Navigation property for order items
+    [JsonIgnore]
+    public ICollection<OrderItem>? OrderItems { get; set; }
 }
