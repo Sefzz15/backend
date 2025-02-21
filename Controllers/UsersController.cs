@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
+    private readonly CustomerService _customerService;
 
-    public UserController(UserService userService)
+    public UserController(UserService userService, CustomerService customerService)
     {
         _userService = userService;
+        _customerService = customerService;
     }
-
+  
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -43,6 +45,20 @@ public class UserController : ControllerBase
         }
 
         return Ok(new { userId });
+    }
+
+
+     [HttpGet("check-customer/{userId}")]
+    public async Task<ActionResult<Customer>> CheckIfUserIsCustomer(int userId)
+    {
+        var customer = await _customerService.GetCustomerByUserIdAsync(userId);
+
+        if (customer == null)
+        {
+            return NotFound("User is not a customer.");
+        }
+
+        return Ok(customer);
     }
 
     [HttpPost("login")]

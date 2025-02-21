@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,10 +26,15 @@ public class AppDbContext : DbContext
             .HasForeignKey(o => o.Cid)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Order>()
-            .HasOne(o => o.Product)
-            .WithMany(p => p.Orders)
-            .HasForeignKey(o => o.Pid)
-            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<OrderItem>()
+               .HasOne(oi => oi.Order) // Each OrderItem has one Order
+               .WithMany(o => o.OrderItems) // Each Order has many OrderItems
+               .HasForeignKey(oi => oi.OrderId) // ForeignKey in OrderItem
+               .OnDelete(DeleteBehavior.Cascade); // Optional: Define delete behavior
+
+        modelBuilder.Entity<OrderItem>()
+            .HasOne(oi => oi.Product) // Each OrderItem has one Product
+            .WithMany() // No need for reverse navigation in Product
+            .HasForeignKey(oi => oi.ProductId); // ForeignKey in OrderItem
     }
 }

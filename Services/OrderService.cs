@@ -10,15 +10,20 @@ public class OrderService
         _context = context;
     }
 
-    public async Task<IEnumerable<Order>> GetAllOrders()
+// ✅ Get all orders with customer and order items
+    public async Task<List<Order>> GetAllOrdersAsync()
     {
-        return await _context.Orders.Include(o => o.Customer).Include(o => o.Product).ToListAsync();
+        return await _context.Orders
+            .Include(o => o.Customer)  // Include customer details
+            .Include(o => o.OrderItems) // Include order items
+                .ThenInclude(oi => oi.Product) // Include product details in order items
+            .ToListAsync();
     }
 
-    public async Task<Order?> GetOrderById(int id)
-    {
-        return await _context.Orders.Include(o => o.Customer).Include(o => o.Product).FirstOrDefaultAsync(o => o.Oid == id);
-    }
+    // public async Task<Order?> GetOrderById(int id)
+    // {
+    //     return await _context.Orders.Include(o => o.Customer).Include(o => o.Product).FirstOrDefaultAsync(o => o.Oid == id);
+    // }
 
     public async Task AddOrder(Order order)
     {

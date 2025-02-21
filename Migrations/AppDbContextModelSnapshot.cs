@@ -58,19 +58,48 @@ namespace backend.Migrations
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("Pid")
+                    b.Property<int>("Ooid")
                         .HasColumnType("int");
 
-                    b.Property<int>("Quantity")
+                    b.Property<int?>("ProductPid")
                         .HasColumnType("int");
 
                     b.HasKey("Oid");
 
                     b.HasIndex("Cid");
 
-                    b.HasIndex("Pid");
+                    b.HasIndex("ProductPid");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ProductPid")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ProductPid");
+
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("Product", b =>
@@ -132,13 +161,32 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Product", "Product")
+                    b.HasOne("Product", null)
                         .WithMany("Orders")
-                        .HasForeignKey("Pid")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("ProductPid");
 
                     b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("OrderItem", b =>
+                {
+                    b.HasOne("Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Product", null)
+                        .WithMany("OrderItems")
+                        .HasForeignKey("ProductPid");
+
+                    b.Navigation("Order");
 
                     b.Navigation("Product");
                 });
@@ -148,8 +196,15 @@ namespace backend.Migrations
                     b.Navigation("Orders");
                 });
 
+            modelBuilder.Entity("Order", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
             modelBuilder.Entity("Product", b =>
                 {
+                    b.Navigation("OrderItems");
+
                     b.Navigation("Orders");
                 });
 

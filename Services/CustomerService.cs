@@ -40,4 +40,19 @@ public class CustomerService
             await _context.SaveChangesAsync();
         }
     }
+
+        public async Task<Customer?> GetCustomerByUserIdAsync(int userId)
+    {
+        return await _context.Customers
+            .Where(c => c.Uid == userId)
+            .Select(c => new Customer
+            {
+            Cid = c.Cid,
+            Uid = c.Uid,
+            Firstname = c.Firstname,
+            Lastname = c.Lastname,
+            Email = c.Email
+            })
+            .FirstOrDefaultAsync();
+    }
 }

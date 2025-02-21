@@ -7,7 +7,7 @@ using MySql.EntityFrameworkCore.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -75,10 +75,10 @@ namespace backend.Migrations
                 {
                     Oid = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    Ooid = table.Column<int>(type: "int", nullable: false),
                     Cid = table.Column<int>(type: "int", nullable: false),
-                    Pid = table.Column<int>(type: "int", nullable: false),
                     Date = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false)
+                    ProductPid = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -90,11 +90,44 @@ namespace backend.Migrations
                         principalColumn: "Cid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Orders_Products_Pid",
-                        column: x => x.Pid,
+                        name: "FK_Orders_Products_ProductPid",
+                        column: x => x.ProductPid,
+                        principalTable: "Products",
+                        principalColumn: "Pid");
+                })
+                .Annotation("MySQL:Charset", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "OrderItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySQL:ValueGenerationStrategy", MySQLValueGenerationStrategy.IdentityColumn),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    ProductPid = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderItems", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Oid",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Products_ProductId",
+                        column: x => x.ProductId,
                         principalTable: "Products",
                         principalColumn: "Pid",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Products_ProductPid",
+                        column: x => x.ProductPid,
+                        principalTable: "Products",
+                        principalColumn: "Pid");
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
 
@@ -104,19 +137,37 @@ namespace backend.Migrations
                 column: "Uid");
 
             migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_OrderId",
+                table: "OrderItems",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_ProductId",
+                table: "OrderItems",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_ProductPid",
+                table: "OrderItems",
+                column: "ProductPid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Orders_Cid",
                 table: "Orders",
                 column: "Cid");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_Pid",
+                name: "IX_Orders_ProductPid",
                 table: "Orders",
-                column: "Pid");
+                column: "ProductPid");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "OrderItems");
+
             migrationBuilder.DropTable(
                 name: "Orders");
 

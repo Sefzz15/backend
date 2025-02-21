@@ -4,15 +4,17 @@ using System.Text.Json.Serialization;
 public class Order
 {
     [Key]
-    public int Oid { get; set; }
-    public int Cid { get; set; }
-    public int Pid { get; set; }
-    public DateTime Date { get; set; }
-    public int Quantity { get; set; }
+    public int Oid { get; set; } // Primary key
 
-    // Navigation properties
-    [JsonIgnore]
+        public int Ooid { get; set; }
+
+    public int Cid { get; set; } // Customer ID
+    public DateTime Date { get; set; }
+
+      // Navigation property for order items
+  
+   [JsonIgnore]
     public Customer? Customer { get; set; }
     [JsonIgnore]
-    public Product? Product { get; set; }
+    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }
