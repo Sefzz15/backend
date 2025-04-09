@@ -1,3 +1,4 @@
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -6,13 +7,16 @@ public class UserController : ControllerBase
 {
     private readonly UserService _userService;
     private readonly CustomerService _customerService;
+    private readonly JwtService _jwtService;
 
-    public UserController(UserService userService, CustomerService customerService)
+    public UserController(UserService userService, CustomerService customerService, JwtService jwtService)
     {
         _userService = userService;
         _customerService = customerService;
+        _jwtService = jwtService;
+
     }
-  
+
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -48,7 +52,7 @@ public class UserController : ControllerBase
     }
 
 
-     [HttpGet("check-customer/{userId}")]
+    [HttpGet("check-customer/{userId}")]
     public async Task<ActionResult<Customer>> CheckIfUserIsCustomer(int userId)
     {
         var customer = await _customerService.GetCustomerByUserIdAsync(userId);
@@ -75,10 +79,12 @@ public class UserController : ControllerBase
         {
             return Unauthorized(new { message = "Invalid username or password." });
         }
+        var token = _jwtService.GenerateJwtToken(user.Uname);
 
         return Ok(new
         {
             message = "Login successful!",
+            token = token,
             user = new
             {
                 user.Uid,
