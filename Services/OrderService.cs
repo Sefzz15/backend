@@ -10,7 +10,7 @@ public class OrderService
         _context = context;
     }
 
-// ✅ Get all orders with customer and order items
+    // ✅ Get all orders with customer and order items
     public async Task<List<Order>> GetAllOrdersAsync()
     {
         return await _context.Orders
@@ -20,10 +20,14 @@ public class OrderService
             .ToListAsync();
     }
 
-    // public async Task<Order?> GetOrderById(int id)
-    // {
-    //     return await _context.Orders.Include(o => o.Customer).Include(o => o.Product).FirstOrDefaultAsync(o => o.Oid == id);
-    // }
+    public async Task<Order?> GetOrderById(int id)
+    {
+        return await _context.Orders
+            .Include(o => o.Customer)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product) 
+            .FirstOrDefaultAsync(o => o.Oid == id);
+    }
 
     public async Task AddOrder(Order order)
     {
