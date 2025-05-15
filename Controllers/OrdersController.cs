@@ -24,13 +24,13 @@ public class OrderController : ControllerBase
         return Ok(orders);
     }
 
-    // [HttpGet("{id}")]
-    // public async Task<IActionResult> GetOrderById(int id)
-    // {
-    //     var order = await _orderService.GetOrderById(id);
-    //     if (order == null) return NotFound();
-    //     return Ok(order);
-    // }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetOrderById(int id)
+    {
+        var order = await _orderService.GetOrderById(id);
+        if (order == null) return NotFound();
+        return Ok(order);
+    }
 
 [HttpPost]
 public async Task<IActionResult> CreateOrder([FromBody] Order order)
