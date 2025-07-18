@@ -51,7 +51,7 @@ public async Task<IActionResult> CreateOrder([FromBody] Order order)
         // Set the OrderId for each OrderItem to the Oid of the Order
         foreach (var orderItem in orderItems)
         {
-            orderItem.OrderId = order.Oid;  // Ensure OrderId is set to the Order's Oid
+            orderItem.Oid = order.Oid;  // Ensure OrderId is set to the Order's Oid
         }
 
         // Add the order to the context

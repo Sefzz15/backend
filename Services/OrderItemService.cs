@@ -27,12 +27,11 @@ public class OrderItemService
             // Deduct stock
             product.Stock -= orderItem.Quantity;
 
-            // Create and populate the OrderItem with the correct OrderId
             var newOrderItem = new OrderItem
             {
                 ProductId = orderItem.ProductId,
                 Quantity = orderItem.Quantity,
-                OrderId = order.Oid  // Make sure to set the OrderId from the Order's Oid
+                Oid = order.Oid
             };
 
             orderItems.Add(newOrderItem);
