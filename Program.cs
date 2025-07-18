@@ -42,14 +42,12 @@ builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<OrderItemService>();
 
 // builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddScoped<IProductService, ProductService>();
-// builder.Services.AddScoped<ICustomerService, CustomerService>();
 // builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();

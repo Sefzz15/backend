@@ -14,7 +14,7 @@ public class OrderService
     public async Task<List<Order>> GetAllOrdersAsync()
     {
         return await _context.Orders
-            .Include(o => o.Customer)  // Include customer details
+            .Include(o => o.User)  // Include customer details
             .Include(o => o.OrderItems) // Include order items
                 .ThenInclude(oi => oi.Product) // Include product details in order items
             .ToListAsync();
@@ -23,7 +23,7 @@ public class OrderService
     public async Task<Order?> GetOrderById(int id)
     {
         return await _context.Orders
-            .Include(o => o.Customer)
+            .Include(o => o.User)
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product) 
             .FirstOrDefaultAsync(o => o.Oid == id);

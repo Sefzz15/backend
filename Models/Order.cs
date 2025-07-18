@@ -1,20 +1,20 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 public class Order
 {
     [Key]
-    public int Oid { get; set; } // Primary key
+    public int Oid { get; set; }
 
-    public int Ooid { get; set; }
+    public int UserId { get; set; }
 
-    public int Cid { get; set; } // Customer ID
-    public DateTime Date { get; set; }
+    public DateTime Date { get; set; } = DateTime.UtcNow;
 
-    // Navigation property for order items
+    // Navigation property
+    [ForeignKey("UserId")]
+    public User? User { get; set; }
 
     [JsonIgnore]
-    public Customer? Customer { get; set; }
-    [JsonIgnore]
-    public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public ICollection<OrderItem>? OrderItems { get; set; }
 }
