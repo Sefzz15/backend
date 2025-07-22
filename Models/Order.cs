@@ -7,14 +7,14 @@ public class Order
     [Key]
     public int Oid { get; set; }
 
-    public int UserId { get; set; }
+    public int Uid { get; set; }
 
     public DateTime Date { get; set; } = DateTime.UtcNow;
 
     // Navigation property
-    [ForeignKey("UserId")]
+    [ForeignKey("Uid")]
     public User? User { get; set; }
 
     [JsonIgnore]
-    public ICollection<OrderItem>? OrderItems { get; set; }
+    public ICollection<OrderDetail>? OrderDetails { get; set; }
 }

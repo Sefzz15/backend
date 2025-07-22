@@ -11,7 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
-    public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<OrderDetail> OrderDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,22 +32,22 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Order>()
             .HasOne(o => o.User)
             .WithMany(u => u.Orders)
-            .HasForeignKey(o => o.UserId)
+            .HasForeignKey(o => o.Uid)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Configure OrderItem
-        modelBuilder.Entity<OrderItem>()
-            .HasKey(oi => oi.OrderItemId);
+        // Configure OrderDetail
+        modelBuilder.Entity<OrderDetail>()
+            .HasKey(od => new { od.Oid, od.ProductId });
 
-        modelBuilder.Entity<OrderItem>()
+        modelBuilder.Entity<OrderDetail>()
             .HasOne(oi => oi.Order)
-            .WithMany(o => o.OrderItems)
+            .WithMany(o => o.OrderDetails)
             .HasForeignKey(oi => oi.Oid)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<OrderItem>()
+        modelBuilder.Entity<OrderDetail>()
             .HasOne(oi => oi.Product)
-            .WithMany(p => p.OrderItems)
+            .WithMany(p => p.OrderDetails)
             .HasForeignKey(oi => oi.ProductId)
             .OnDelete(DeleteBehavior.Restrict); // To avoid product deletion if referenced
     }

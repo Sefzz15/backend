@@ -44,7 +44,7 @@ builder.Logging.AddConsole();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<OrderItemService>();
+builder.Services.AddScoped<OrderDetailService>();
 
 // builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddScoped<IProductService, ProductService>();

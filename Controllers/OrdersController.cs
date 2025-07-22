@@ -5,14 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 public class OrderController : ControllerBase
 {
     private readonly OrderService _orderService;
-    private readonly OrderItemService _orderItemService;
+    private readonly OrderDetailService _orderDetailService;
     private readonly AppDbContext _context;
 
-    public OrderController(OrderService orderService, AppDbContext context, OrderItemService orderItemService)
+    public OrderController(OrderService orderService, AppDbContext context, OrderDetailService orderDetailService)
 
     {
         _orderService = orderService;
-        _orderItemService = orderItemService;
+        _orderDetailService = orderDetailService;
         _context = context;
 
     }
@@ -20,7 +20,7 @@ public class OrderController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders()
     {
-        var orders = await _orderService.GetAllOrdersAsync();
+        var orders = await _orderService.GetAllOrders();
         return Ok(orders);
     }
 
@@ -45,20 +45,20 @@ public async Task<IActionResult> CreateOrder([FromBody] Order order)
 
     try
     {
-        // Set OrderId for each OrderItem and handle stock check and creation
-        var orderItems = await _orderItemService.CreateOrderItemsAsync(order);
+        // Set OrderId for each OrderDetail and handle stock check and creation
+        var orderDetails = await _orderDetailService.CreateOrderDetailsAsync(order);
 
-        // Set the OrderId for each OrderItem to the Oid of the Order
-        foreach (var orderItem in orderItems)
+        // Set the OrderId for each OrderDetail to the Oid of the Order
+        foreach (var orderDetail in orderDetails)
         {
-            orderItem.Oid = order.Oid;  // Ensure OrderId is set to the Order's Oid
+            orderDetail.Oid = order.Oid;  // Ensure OrderId is set to the Order's Oid
         }
 
         // Add the order to the context
         _context.Orders.Add(order);
 
         // Add the order items to the context
-        _context.OrderItems.AddRange(orderItems);
+        _context.OrderDetails.AddRange(orderDetails);
 
         // Save all changes to the database
         await _context.SaveChangesAsync();
