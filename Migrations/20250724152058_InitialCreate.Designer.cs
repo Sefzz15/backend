@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250721162613_InitialCreate1")]
-    partial class InitialCreate1
+    [Migration("20250724152058_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,19 +42,21 @@ namespace backend.Migrations
 
             modelBuilder.Entity("OrderDetail", b =>
                 {
-                    b.Property<int>("Oid")
+                    b.Property<int>("Odid")
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Odid")
+                    b.Property<int>("Oid")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Oid", "ProductId");
+                    b.HasKey("Odid", "ProductId");
+
+                    b.HasIndex("Oid");
 
                     b.HasIndex("ProductId");
 

@@ -9,7 +9,7 @@ public class Order
 
     public int Uid { get; set; }
 
-    public DateTime Date { get; set; } = DateTime.UtcNow;
+    public DateTime Date { get; set; }
 
     // Navigation property
     [ForeignKey("Uid")]

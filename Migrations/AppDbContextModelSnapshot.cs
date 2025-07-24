@@ -39,19 +39,21 @@ namespace backend.Migrations
 
             modelBuilder.Entity("OrderDetail", b =>
                 {
-                    b.Property<int>("Oid")
+                    b.Property<int>("Odid")
                         .HasColumnType("int");
 
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Odid")
+                    b.Property<int>("Oid")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Oid", "ProductId");
+                    b.HasKey("Odid", "ProductId");
+
+                    b.HasIndex("Oid");
 
                     b.HasIndex("ProductId");
 

@@ -31,24 +31,24 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Order>()
             .HasOne(o => o.User)
-            .WithMany(u => u.Orders)
+            .WithMany(o => o.Orders)
             .HasForeignKey(o => o.Uid)
             .OnDelete(DeleteBehavior.Cascade);
 
         // Configure OrderDetail
         modelBuilder.Entity<OrderDetail>()
-            .HasKey(od => new { od.Oid, od.ProductId });
+            .HasKey(od => new { od.Odid, od.ProductId });
 
         modelBuilder.Entity<OrderDetail>()
-            .HasOne(oi => oi.Order)
-            .WithMany(o => o.OrderDetails)
-            .HasForeignKey(oi => oi.Oid)
+            .HasOne(od => od.Order)
+            .WithMany(od => od.OrderDetails)
+            .HasForeignKey(od => od.Oid)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<OrderDetail>()
-            .HasOne(oi => oi.Product)
-            .WithMany(p => p.OrderDetails)
-            .HasForeignKey(oi => oi.ProductId)
-            .OnDelete(DeleteBehavior.Restrict); // To avoid product deletion if referenced
+            .HasOne(od => od.Product)
+            .WithMany(od => od.OrderDetails)
+            .HasForeignKey(od => od.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
