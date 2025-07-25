@@ -37,7 +37,7 @@ public class AppDbContext : DbContext
 
         // Configure OrderDetail
         modelBuilder.Entity<OrderDetail>()
-            .HasKey(od => new { od.Odid, od.ProductId });
+            .HasKey(od => new { od.Oid, od.ProductId });
 
         modelBuilder.Entity<OrderDetail>()
             .HasOne(od => od.Order)

@@ -4,8 +4,8 @@ using System.Text.Json.Serialization;
 
 public class OrderDetail
 {
-    [Key]
-    public int Odid { get; set; }
+    // [Key]
+    // public int Odid { get; set; }
 
     public int Oid { get; set; }
 
