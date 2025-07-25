@@ -7,7 +7,7 @@ using MySql.EntityFrameworkCore.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialCreate1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,14 +71,13 @@ namespace backend.Migrations
                 name: "OrderDetails",
                 columns: table => new
                 {
-                    Odid = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
                     Oid = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderDetails", x => new { x.Odid, x.ProductId });
+                    table.PrimaryKey("PK_OrderDetails", x => new { x.Oid, x.ProductId });
                     table.ForeignKey(
                         name: "FK_OrderDetails_Orders_Oid",
                         column: x => x.Oid,
@@ -93,11 +92,6 @@ namespace backend.Migrations
                         onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySQL:Charset", "utf8mb4");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_Oid",
-                table: "OrderDetails",
-                column: "Oid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderDetails_ProductId",

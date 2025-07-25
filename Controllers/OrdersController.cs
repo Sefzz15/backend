@@ -18,10 +18,18 @@ public class OrderController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Order>>> GetAllOrders()
+    public async Task<ActionResult<IEnumerable<object>>> GetAllOrders()
     {
         var orders = await _orderService.GetAllOrders();
-        return Ok(orders);
+
+        var result = orders.Select(order => new
+        {
+            order.Oid,
+            order.Uid,
+            Date = order.Date.ToString("d/M/yyyy HH:mm:ss")
+        });
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
@@ -29,14 +37,25 @@ public class OrderController : ControllerBase
     {
         var order = await _orderService.GetOrderById(id);
         if (order == null) return NotFound();
-        return Ok(order);
+
+        var result = new
+        {
+            order.Oid,
+            order.Uid,
+            Date = order.Date.ToString("d/M/yyyy HH:mm:ss")
+        };
+
+        return Ok(result);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] Order order)
     {
+        order.Date = DateTime.Now;
+
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
+
         return Ok(order);
     }
 
