@@ -4,12 +4,10 @@ using System.Text.Json.Serialization;
 
 public class OrderDetail
 {
-    // [Key]
-    // public int Odid { get; set; }
 
     public int Oid { get; set; }
 
-    public int ProductId { get; set; }
+    public int Pid { get; set; }
 
     public int Quantity { get; set; }
 
@@ -18,6 +16,7 @@ public class OrderDetail
     [JsonIgnore]
     public Order? Order { get; set; }
 
-    [ForeignKey("ProductId")]
+    [ForeignKey("Pid")]
+    [JsonIgnore]
     public Product? Product { get; set; }
 }

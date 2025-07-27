@@ -37,7 +37,7 @@ public class AppDbContext : DbContext
 
         // Configure OrderDetail
         modelBuilder.Entity<OrderDetail>()
-            .HasKey(od => new { od.Oid, od.ProductId });
+            .HasKey(od => new { od.Oid, od.Pid });
 
         modelBuilder.Entity<OrderDetail>()
             .HasOne(od => od.Order)
@@ -48,7 +48,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<OrderDetail>()
             .HasOne(od => od.Product)
             .WithMany(od => od.OrderDetails)
-            .HasForeignKey(od => od.ProductId)
+            .HasForeignKey(od => od.Pid)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

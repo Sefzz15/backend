@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250724165526_InitialCreate1")]
-    partial class InitialCreate1
+    [Migration("20250726115647_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -45,15 +45,15 @@ namespace backend.Migrations
                     b.Property<int>("Oid")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("Pid")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Oid", "ProductId");
+                    b.HasKey("Oid", "Pid");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("Pid");
 
                     b.ToTable("OrderDetails");
                 });
@@ -119,7 +119,7 @@ namespace backend.Migrations
 
                     b.HasOne("Product", "Product")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("Pid")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
