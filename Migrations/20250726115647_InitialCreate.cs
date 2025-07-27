@@ -7,7 +7,7 @@ using MySql.EntityFrameworkCore.Metadata;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate1 : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -72,12 +72,12 @@ namespace backend.Migrations
                 columns: table => new
                 {
                     Oid = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Pid = table.Column<int>(type: "int", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_OrderDetails", x => new { x.Oid, x.ProductId });
+                    table.PrimaryKey("PK_OrderDetails", x => new { x.Oid, x.Pid });
                     table.ForeignKey(
                         name: "FK_OrderDetails_Orders_Oid",
                         column: x => x.Oid,
@@ -85,8 +85,8 @@ namespace backend.Migrations
                         principalColumn: "Oid",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_OrderDetails_Products_ProductId",
-                        column: x => x.ProductId,
+                        name: "FK_OrderDetails_Products_Pid",
+                        column: x => x.Pid,
                         principalTable: "Products",
                         principalColumn: "Pid",
                         onDelete: ReferentialAction.Restrict);
@@ -94,9 +94,9 @@ namespace backend.Migrations
                 .Annotation("MySQL:Charset", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_OrderDetails_ProductId",
+                name: "IX_OrderDetails_Pid",
                 table: "OrderDetails",
-                column: "ProductId");
+                column: "Pid");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_Uid",

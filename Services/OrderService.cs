@@ -9,7 +9,7 @@ public class OrderService
         _context = context;
     }
 
-    // Λήψη όλων των παραγγελιών (μαζί με τον χρήστη)
+    // Get all orders
     public async Task<IEnumerable<Order>> GetAllOrders()
     {
         return await _context.Orders
@@ -17,7 +17,7 @@ public class OrderService
                              .ToListAsync();
     }
 
-    // Λήψη παραγγελίας με βάση το ID
+    // Get order by ID
     public async Task<Order?> GetOrderById(int id)
     {
         return await _context.Orders
@@ -25,21 +25,21 @@ public class OrderService
                              .FirstOrDefaultAsync(o => o.Oid == id);
     }
 
-    // Προσθήκη παραγγελίας
+    // Add new order
     public async Task AddOrder(Order order)
     {
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
     }
 
-    // Ενημέρωση παραγγελίας
+    // Update existing order
     public async Task UpdateOrder(Order order)
     {
         _context.Orders.Update(order);
         await _context.SaveChangesAsync();
     }
 
-    // Διαγραφή παραγγελίας
+    // Delete order by ID
     public async Task DeleteOrder(int id)
     {
         var order = await _context.Orders.FindAsync(id);
@@ -50,7 +50,7 @@ public class OrderService
         }
     }
 
-    // (Προαιρετικά) Λήψη παραγγελιών ενός συγκεκριμένου χρήστη
+    // Get orders by user ID
     public async Task<IEnumerable<Order>> GetOrdersByUserId(int userId)
     {
         return await _context.Orders

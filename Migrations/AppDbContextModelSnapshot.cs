@@ -42,15 +42,15 @@ namespace backend.Migrations
                     b.Property<int>("Oid")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductId")
+                    b.Property<int>("Pid")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.HasKey("Oid", "ProductId");
+                    b.HasKey("Oid", "Pid");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("Pid");
 
                     b.ToTable("OrderDetails");
                 });
@@ -116,7 +116,7 @@ namespace backend.Migrations
 
                     b.HasOne("Product", "Product")
                         .WithMany("OrderDetails")
-                        .HasForeignKey("ProductId")
+                        .HasForeignKey("Pid")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
