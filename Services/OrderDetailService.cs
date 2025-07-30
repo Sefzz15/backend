@@ -11,7 +11,15 @@ public class OrderDetailService
 
     public async Task<IEnumerable<OrderDetail>> GetAllOrderDetails()
     {
-        return await _context.OrderDetails.ToListAsync();
+
+        // return await _context.OrderDetails.ToListAsync();
+        
+
+        return await _context.OrderDetails
+        .Include(od => od.Product)
+        .Include(od => od.Order)
+        .Include(od => od.Order.User)
+        .ToListAsync();
     }
     public async Task<OrderDetail?> GetOrderDetailById(int id)
     {

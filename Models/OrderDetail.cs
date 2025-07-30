@@ -13,10 +13,10 @@ public class OrderDetail
 
     // Navigation properties
     [ForeignKey("Oid")]
-    [JsonIgnore]
+    // [JsonIgnore]
     public Order? Order { get; set; }
 
     [ForeignKey("Pid")]
-    [JsonIgnore]
+    // [JsonIgnore]
     public Product? Product { get; set; }
 }
