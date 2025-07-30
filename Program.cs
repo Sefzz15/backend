@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using backend.Services;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +33,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add controllers for API endpoints with JSON options to handle reference loops
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    // options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+
 });
 
 builder.Services.AddLogging();
@@ -46,9 +49,6 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<OrderDetailService>();
 
-// builder.Services.AddScoped<IUserService, UserService>();
-// builder.Services.AddScoped<IProductService, ProductService>();
-// builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
