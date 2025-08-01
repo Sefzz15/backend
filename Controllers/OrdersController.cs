@@ -33,7 +33,7 @@ public class OrderController : ControllerBase
         return Ok(result);
     }
 
-      [HttpPost("create")]
+    [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderInput input)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
@@ -49,10 +49,10 @@ public class OrderController : ControllerBase
             foreach (var item in input.OrderDetails)
             {
                 if (!products.ContainsKey(item.Pid))
-                    return BadRequest($"Product with ID {item.Pid} does not exist.");
+                    return BadRequest(new { message = $"Product with ID {item.Pid} does not exist." });
 
                 if (products[item.Pid].Stock < item.Quantity)
-                    return BadRequest($"Not enough stock for product {products[item.Pid].Pname}.");
+                    return BadRequest(new { message = $"Not enough stock for product {products[item.Pid].Pname}." });
             }
 
             // Step 2: Create Order
