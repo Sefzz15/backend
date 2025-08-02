@@ -39,4 +39,11 @@ public class FeedbackController : ControllerBase
 
         return Ok(new { message = "Feedback submitted successfully" });
     }
+
+        [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        await _feedbackService.DeleteFeedback(id);
+        return NoContent();
+    }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250802105455_spotify2")]
+    partial class spotify2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -121,30 +124,38 @@ namespace backend.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("AudiobookChapterTitle")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("AudiobookChapterUri")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("AudiobookTitle")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("AudiobookUri")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("ConnCountry")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("EpisodeName")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("EpisodeShowName")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IncognitoMode")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("IpAddr")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<int>("MsPlayed")
@@ -157,12 +168,15 @@ namespace backend.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Platform")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("ReasonEnd")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("ReasonStart")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<bool>("Shuffle")
@@ -172,12 +186,15 @@ namespace backend.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("SpotifyEpisodeUri")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("SpotifyTrackUri")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<string>("TrackName")
+                        .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("Ts")

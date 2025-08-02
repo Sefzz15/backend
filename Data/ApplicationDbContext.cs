@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Feedback> Feedbacks { get; set; }
+    public DbSet<Spotify> Spotify { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,6 +56,10 @@ public class AppDbContext : DbContext
         // Configure Feedback
         modelBuilder.Entity<Feedback>()
        .HasKey(f => f.Fid);
+
+        // Configure Spotify primary key
+        modelBuilder.Entity<Spotify>()
+            .HasKey(s => s.Id);
 
         modelBuilder.Entity<Feedback>()
             .HasOne(f => f.User)
