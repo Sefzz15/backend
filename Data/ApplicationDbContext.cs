@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderDetail> OrderDetails { get; set; }
+    public DbSet<Feedback> Feedbacks { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,5 +51,14 @@ public class AppDbContext : DbContext
             .WithMany(od => od.OrderDetails)
             .HasForeignKey(od => od.Pid)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Configure Feedback
+        modelBuilder.Entity<Feedback>()
+       .HasKey(f => f.Fid);
+
+        modelBuilder.Entity<Feedback>()
+            .HasOne(f => f.User)
+            .WithMany(u => u.Feedbacks)
+            .HasForeignKey(f => f.Uid);
     }
 }

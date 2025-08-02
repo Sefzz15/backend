@@ -48,6 +48,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<OrderDetailService>();
+builder.Services.AddScoped<FeedbackService>();
 
 
 var app = builder.Build();
