@@ -11,4 +11,7 @@ public class User
     // Navigation property
     [JsonIgnore]
     public ICollection<Order>? Orders { get; set; }
+
+    [JsonIgnore]
+    public ICollection<Feedback>? Feedbacks { get; set; }
 }
