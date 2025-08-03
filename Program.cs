@@ -49,6 +49,7 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<OrderDetailService>();
 builder.Services.AddScoped<FeedbackService>();
+builder.Services.AddScoped<SpotifyService>();
 
 
 var app = builder.Build();
