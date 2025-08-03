@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250802101131_Spotify")]
-    partial class Spotify
+    [Migration("20250803072304_FixedMigration")]
+    partial class FixedMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,89 +117,73 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("AlbumArtistName")
-                        .IsRequired()
+                    b.Property<string>("audiobook_chapter_title")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AlbumName")
-                        .IsRequired()
+                    b.Property<string>("audiobook_chapter_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookChapterTitle")
-                        .IsRequired()
+                    b.Property<string>("audiobook_title")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookChapterUri")
-                        .IsRequired()
+                    b.Property<string>("audiobook_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookTitle")
-                        .IsRequired()
+                    b.Property<string>("conn_country")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookUri")
-                        .IsRequired()
+                    b.Property<string>("episode_name")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ConnCountry")
-                        .IsRequired()
+                    b.Property<string>("episode_show_name")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("EpisodeName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("EpisodeShowName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IncognitoMode")
+                    b.Property<bool>("incognito_mode")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("IpAddr")
-                        .IsRequired()
+                    b.Property<string>("ip_addr")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("MsPlayed")
+                    b.Property<string>("master_metadata_album_album_name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("master_metadata_album_artist_name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("master_metadata_track_name")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ms_played")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Offline")
+                    b.Property<bool>("offline")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<long>("OfflineTimestamp")
+                    b.Property<long>("offline_timestamp")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Platform")
-                        .IsRequired()
+                    b.Property<string>("platform")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ReasonEnd")
-                        .IsRequired()
+                    b.Property<string>("reason_end")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ReasonStart")
-                        .IsRequired()
+                    b.Property<string>("reason_start")
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("Shuffle")
+                    b.Property<bool>("shuffle")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<bool>("Skipped")
+                    b.Property<bool>("skipped")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("SpotifyEpisodeUri")
-                        .IsRequired()
+                    b.Property<string>("spotify_episode_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("SpotifyTrackUri")
-                        .IsRequired()
+                    b.Property<string>("spotify_track_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TrackName")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("Ts")
+                    b.Property<DateTime>("ts")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");

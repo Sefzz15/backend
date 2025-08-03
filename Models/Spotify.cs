@@ -5,27 +5,27 @@ public class Spotify
     [Key]
     public int Id { get; set; }  // primary key
 
-    public DateTime Ts { get; set; }
-    public string? Platform { get; set; }
-    public int MsPlayed { get; set; }
-    public string? ConnCountry { get; set; }
-    public string? IpAddr { get; set; }
-    public string? TrackName { get; set; }
-    public string? AlbumArtistName { get; set; }
-    public string? AlbumName { get; set; }
-    public string? SpotifyTrackUri { get; set; }
-    public string? EpisodeName { get; set; }
-    public string? EpisodeShowName { get; set; }
-    public string? SpotifyEpisodeUri { get; set; }
-    public string? AudiobookTitle { get; set; }
-    public string? AudiobookUri { get; set; }
-    public string? AudiobookChapterUri { get; set; }
-    public string? AudiobookChapterTitle { get; set; }
-    public string? ReasonStart { get; set; }
-    public string? ReasonEnd { get; set; }
-    public bool Shuffle { get; set; }
-    public bool Skipped { get; set; }
-    public bool Offline { get; set; }
-    public long OfflineTimestamp { get; set; }
-    public bool IncognitoMode { get; set; }
+    public DateTime ts { get; set; }
+    public string? platform { get; set; }
+    public int ms_played { get; set; }
+    public string? conn_country { get; set; }
+    public string? ip_addr { get; set; }
+    public string? master_metadata_track_name { get; set; }
+    public string? master_metadata_album_artist_name { get; set; }
+    public string? master_metadata_album_album_name { get; set; }
+    public string? spotify_track_uri { get; set; }
+    public string? episode_name { get; set; }
+    public string? episode_show_name { get; set; }
+    public string? spotify_episode_uri { get; set; }
+    public string? audiobook_title { get; set; }
+    public string? audiobook_uri { get; set; }
+    public string? audiobook_chapter_uri { get; set; }
+    public string? audiobook_chapter_title { get; set; }
+    public string? reason_start { get; set; }
+    public string? reason_end { get; set; }
+    public bool? shuffle { get; set; }
+    public bool? skipped { get; set; }
+    public bool? offline { get; set; }
+    public long? offline_timestamp { get; set; }
+    public bool? incognito_mode { get; set; }
 }

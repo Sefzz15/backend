@@ -114,73 +114,73 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<string>("AlbumArtistName")
+                    b.Property<string>("audiobook_chapter_title")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AlbumName")
+                    b.Property<string>("audiobook_chapter_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookChapterTitle")
+                    b.Property<string>("audiobook_title")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookChapterUri")
+                    b.Property<string>("audiobook_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookTitle")
+                    b.Property<string>("conn_country")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("AudiobookUri")
+                    b.Property<string>("episode_name")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ConnCountry")
+                    b.Property<string>("episode_show_name")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("EpisodeName")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("EpisodeShowName")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IncognitoMode")
+                    b.Property<bool?>("incognito_mode")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("IpAddr")
+                    b.Property<string>("ip_addr")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("MsPlayed")
+                    b.Property<string>("master_metadata_album_album_name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("master_metadata_album_artist_name")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("master_metadata_track_name")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ms_played")
                         .HasColumnType("int");
 
-                    b.Property<bool>("Offline")
+                    b.Property<bool?>("offline")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<long>("OfflineTimestamp")
+                    b.Property<long?>("offline_timestamp")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Platform")
+                    b.Property<string>("platform")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ReasonEnd")
+                    b.Property<string>("reason_end")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ReasonStart")
+                    b.Property<string>("reason_start")
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("Shuffle")
+                    b.Property<bool?>("shuffle")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<bool>("Skipped")
+                    b.Property<bool?>("skipped")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("SpotifyEpisodeUri")
+                    b.Property<string>("spotify_episode_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("SpotifyTrackUri")
+                    b.Property<string>("spotify_track_uri")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TrackName")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("Ts")
+                    b.Property<DateTime>("ts")
                         .HasColumnType("datetime(6)");
 
                     b.HasKey("Id");
