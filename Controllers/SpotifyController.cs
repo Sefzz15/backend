@@ -14,17 +14,22 @@ public class SpotifyController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllSpotify([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
+    public async Task<IActionResult> GetAllSpotify(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 100,
+        [FromQuery] string sortColumn = null,
+        [FromQuery] string sortDirection = "asc")
     {
         if (page <= 0 || pageSize <= 0)
         {
             return BadRequest("Page and pageSize must be greater than zero.");
         }
 
-        var result = await _spotifyService.GetSpotifyPageWithMetadata(page, pageSize);
+        var result = await _spotifyService.GetSpotifyPageWithMetadata(page, pageSize, sortColumn, sortDirection);
 
         return Ok(result);
     }
+
 
 
     [HttpGet("{id}")]

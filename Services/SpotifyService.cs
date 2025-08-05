@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-
+using System.Linq.Dynamic.Core;
 public class SpotifyService
 {
     private readonly AppDbContext _context;
@@ -42,11 +42,23 @@ public class SpotifyService
         }
     }
 
-    public async Task<object> GetSpotifyPageWithMetadata(int page, int pageSize)
+    public async Task<object> GetSpotifyPageWithMetadata(int page, int pageSize, string sortColumn, string sortDirection)
     {
-        var totalItems = await _context.Spotify.CountAsync();
-        var items = await _context.Spotify
-            .OrderBy(s => s.Id)
+        IQueryable<Spotify> query = _context.Spotify;
+
+        if (!string.IsNullOrWhiteSpace(sortColumn))
+        {
+            bool ascending = sortDirection.Equals("asc", StringComparison.OrdinalIgnoreCase);
+            query = query.OrderBy($"{sortColumn} {sortDirection}");
+        }
+        else
+        {
+            query = query.OrderBy(s => s.Id); // default sort
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var items = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -60,6 +72,7 @@ public class SpotifyService
             Items = items
         };
     }
+
 
 
 }
