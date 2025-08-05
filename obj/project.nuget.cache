@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "mVrWNK5UE0k=",
+  "dgSpecHash": "Kf6D7Sa8VPI=",
   "success": true,
   "projectFilePath": "C:\\Users\\Sefzz\\Documents\\Visual Studio Code Projects\\backend\\backend.csproj",
   "expectedPackageFiles": [
@@ -100,6 +100,7 @@
     "C:\\Users\\Sefzz\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.3.0\\system.identitymodel.tokens.jwt.8.3.0.nupkg.sha512",
     "C:\\Users\\Sefzz\\.nuget\\packages\\system.io\\4.3.0\\system.io.4.3.0.nupkg.sha512",
     "C:\\Users\\Sefzz\\.nuget\\packages\\system.io.pipelines\\6.0.3\\system.io.pipelines.6.0.3.nupkg.sha512",
+    "C:\\Users\\Sefzz\\.nuget\\packages\\system.linq.dynamic.core\\1.6.7\\system.linq.dynamic.core.1.6.7.nupkg.sha512",
     "C:\\Users\\Sefzz\\.nuget\\packages\\system.memory\\4.5.4\\system.memory.4.5.4.nupkg.sha512",
     "C:\\Users\\Sefzz\\.nuget\\packages\\system.memory.data\\1.0.2\\system.memory.data.1.0.2.nupkg.sha512",
     "C:\\Users\\Sefzz\\.nuget\\packages\\system.net.websockets.websocketprotocol\\4.5.1\\system.net.websockets.websocketprotocol.4.5.1.nupkg.sha512",

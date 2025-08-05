@@ -332,3 +332,4 @@ C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\obj\Debug\net9.0\re
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\obj\Debug\net9.0\backend.pdb
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\obj\Debug\net9.0\backend.genruntimeconfig.cache
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\obj\Debug\net9.0\ref\backend.dll
+C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\System.Linq.Dynamic.Core.dll
