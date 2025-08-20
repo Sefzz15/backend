@@ -27,6 +27,10 @@ public class UserService
         return user?.Uid;  // Return the user ID or null if not found.
     }
 
+    public async Task<User?> GetUserByUsernameAsync(string username)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Uname == username);
+    }
     public async Task AddUser(User user)
     {
         _context.Users.Add(user);

@@ -57,12 +57,13 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username and Password are required." });
         }
 
-        var user = await _userService.LoginAsync(request.Username, request.Password);
+        var user = await _userService.GetUserByUsernameAsync(request.Username); // fetch user by username only
 
-        if (user == null)
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Upass))
         {
             return Unauthorized(new { message = "Invalid username or password." });
         }
+
         var token = _jwtService.GenerateJwtToken(user.Uname);
 
         return Ok(new
@@ -77,20 +78,37 @@ public class UserController : ControllerBase
         });
     }
 
+
     [HttpPost]
     public async Task<IActionResult> AddUser([FromBody] User user)
     {
+        if (string.IsNullOrEmpty(user.Uname) || string.IsNullOrEmpty(user.Upass))
+        {
+            return BadRequest(new { message = "Username and Password are required." });
+        }
+
+        // Hash the password before saving
+        user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
+
         await _userService.AddUser(user);
         return CreatedAtAction(nameof(GetUserById), new { id = user.Uid }, user);
     }
+
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
     {
         if (id != user.Uid) return BadRequest();
+
+        if (!string.IsNullOrEmpty(user.Upass))
+        {
+            user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
+        }
+
         await _userService.UpdateUser(user);
         return NoContent();
     }
+
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
