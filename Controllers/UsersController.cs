@@ -57,7 +57,7 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username and Password are required." });
         }
 
-        var user = await _userService.GetUserByUsernameAsync(request.Username); // fetch user by username only
+        var user = await _userService.GetUserByUsernameAsync(request.Username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Upass))
         {
@@ -87,6 +87,10 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username and Password are required." });
         }
 
+        if (await _userService.UsernameExistsAsync(user.Uname))
+        {
+            return Conflict(new { message = "Username already exists." });
+        }
         // Hash the password before saving
         user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
 

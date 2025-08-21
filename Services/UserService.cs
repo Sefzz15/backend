@@ -37,6 +37,12 @@ public class UserService
         await _context.SaveChangesAsync();
     }
 
+    public async Task<bool> UsernameExistsAsync(string username)
+    {
+        return await _context.Users.AnyAsync(u => u.Uname == username);
+    }
+
+
     public async Task UpdateUser(User user)
     {
         _context.Users.Update(user);
