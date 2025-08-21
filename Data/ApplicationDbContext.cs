@@ -23,6 +23,10 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasKey(u => u.Uid);
 
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Uname)
+            .IsUnique();
+
         // Configure Product primary key
         modelBuilder.Entity<Product>()
             .HasKey(p => p.Pid);
