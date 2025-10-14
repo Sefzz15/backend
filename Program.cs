@@ -53,6 +53,13 @@ builder.Services.AddScoped<SpotifyService>();
 
 
 var app = builder.Build();
+if (args.Contains("--import-spotify"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await SpotifyImporter.ImportAsync(db);  
+    return;
+}
 
 app.UseCors("AllowLocalhost");
 app.UseRouting();
