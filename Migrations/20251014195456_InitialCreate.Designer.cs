@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250803072304_FixedMigration")]
-    partial class FixedMigration
+    [Migration("20251014195456_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,6 +20,37 @@ namespace backend.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
+
+            modelBuilder.Entity("ArtistCatalog", b =>
+                {
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("FetchedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("ArtistId");
+
+                    b.ToTable("ArtistsCatalog");
+                });
+
+            modelBuilder.Entity("ArtistGenre", b =>
+                {
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Genre")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("ArtistId", "Genre");
+
+                    b.HasIndex("Genre");
+
+                    b.ToTable("ArtistGenres");
+                });
 
             modelBuilder.Entity("Feedback", b =>
                 {
@@ -117,6 +148,10 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<string>("TrackId")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<string>("audiobook_chapter_title")
                         .HasColumnType("longtext");
 
@@ -138,7 +173,7 @@ namespace backend.Migrations
                     b.Property<string>("episode_show_name")
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("incognito_mode")
+                    b.Property<bool?>("incognito_mode")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ip_addr")
@@ -156,10 +191,10 @@ namespace backend.Migrations
                     b.Property<int>("ms_played")
                         .HasColumnType("int");
 
-                    b.Property<bool>("offline")
+                    b.Property<bool?>("offline")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<long>("offline_timestamp")
+                    b.Property<long?>("offline_timestamp")
                         .HasColumnType("bigint");
 
                     b.Property<string>("platform")
@@ -171,10 +206,10 @@ namespace backend.Migrations
                     b.Property<string>("reason_start")
                         .HasColumnType("longtext");
 
-                    b.Property<bool>("shuffle")
+                    b.Property<bool?>("shuffle")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<bool>("skipped")
+                    b.Property<bool?>("skipped")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("spotify_episode_uri")
@@ -188,7 +223,65 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TrackId");
+
                     b.ToTable("Spotify");
+                });
+
+            modelBuilder.Entity("TrackArtist", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("TrackId", "ArtistId");
+
+                    b.HasIndex("ArtistId");
+
+                    b.ToTable("TrackArtists");
+                });
+
+            modelBuilder.Entity("TrackCatalog", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("AlbumId")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("AlbumName")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("FetchedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("TrackId");
+
+                    b.ToTable("TracksCatalog");
+                });
+
+            modelBuilder.Entity("TrackGenreWeight", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Genre")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("BuiltAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("double");
+
+                    b.HasKey("TrackId", "Genre");
+
+                    b.ToTable("TrackGenreWeights");
                 });
 
             modelBuilder.Entity("User", b =>
@@ -199,7 +292,7 @@ namespace backend.Migrations
 
                     b.Property<string>("Uname")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("Upass")
                         .IsRequired()
@@ -207,7 +300,21 @@ namespace backend.Migrations
 
                     b.HasKey("Uid");
 
+                    b.HasIndex("Uname")
+                        .IsUnique();
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ArtistGenre", b =>
+                {
+                    b.HasOne("ArtistCatalog", "Artist")
+                        .WithMany("Genres")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
                 });
 
             modelBuilder.Entity("Feedback", b =>
@@ -249,6 +356,32 @@ namespace backend.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("TrackArtist", b =>
+                {
+                    b.HasOne("ArtistCatalog", "Artist")
+                        .WithMany("TrackArtists")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrackCatalog", "Track")
+                        .WithMany()
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
+
+                    b.Navigation("Track");
+                });
+
+            modelBuilder.Entity("ArtistCatalog", b =>
+                {
+                    b.Navigation("Genres");
+
+                    b.Navigation("TrackArtists");
                 });
 
             modelBuilder.Entity("Order", b =>

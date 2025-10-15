@@ -2,44 +2,66 @@ using Newtonsoft.Json;
 
 public static class SpotifyImporter
 {
-    public static async Task ImportAsync(AppDbContext context, CancellationToken ct = default)
+    // New: pass a directory path
+    public static async Task ImportAsync(AppDbContext context, string directory, CancellationToken ct = default)
     {
-        var files = new[]
+        if (string.IsNullOrWhiteSpace(directory))
+            throw new ArgumentException("Directory path is required.", nameof(directory));
+
+        if (!Directory.Exists(directory))
         {
-            @"C:\Users\Sefzz\Desktop\my_spotify_data\Spotify Extended Streaming History\Streaming_History_Audio_2020-2022_1.json",
-            @"C:\Users\Sefzz\Desktop\my_spotify_data\Spotify Extended Streaming History\Streaming_History_Audio_2022_2.json",
-            @"C:\Users\Sefzz\Desktop\my_spotify_data\Spotify Extended Streaming History\Streaming_History_Audio_2022-2023_3.json",
-            @"C:\Users\Sefzz\Desktop\my_spotify_data\Spotify Extended Streaming History\Streaming_History_Audio_2023-2024_4.json",
-            @"C:\Users\Sefzz\Desktop\my_spotify_data\Spotify Extended Streaming History\Streaming_History_Audio_2024_5.json",
-            @"C:\Users\Sefzz\Desktop\my_spotify_data\Spotify Extended Streaming History\Streaming_History_Audio_2024-2025_6.json",
-            @"C:\Users\Sefzz\Desktop\my_spotify_data\Spotify Extended Streaming History\Streaming_History_Audio_2025_7.json",
-            @"C:\Users\Sefzz\Desktop\MyProject\Spotify Extended Streaming History\Streaming_History_Audio_2025_7.json"
-        };
+            Console.WriteLine($"❌ Directory not found: {directory}");
+            return;
+        }
+
+        var jsonFiles = Directory.EnumerateFiles(directory, "*.json", SearchOption.AllDirectories);
 
         var allEntries = new List<Spotify>();
+        int fileCount = 0;
 
-        foreach (var file in files)
+        foreach (var file in jsonFiles)
         {
-            if (File.Exists(file))
+            try
             {
                 var json = await File.ReadAllTextAsync(file, ct);
                 var entries = JsonConvert.DeserializeObject<List<Spotify>>(json);
-                if (entries != null)
+
+                if (entries is { Count: > 0 })
                 {
                     allEntries.AddRange(entries);
                     Console.WriteLine($"✅ Loaded {entries.Count} entries from: {Path.GetFileName(file)}");
                 }
+                else
+                {
+                    Console.WriteLine($"ℹ️  0 entries in: {Path.GetFileName(file)}");
+                }
+
+                fileCount++;
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"⚠️ File not found: {file}");
+                Console.WriteLine($"⚠️ Failed to parse {file}: {ex.Message}");
             }
+        }
+
+        if (allEntries.Count == 0)
+        {
+            Console.WriteLine($"No entries found in {fileCount} files under: {directory}");
+            return;
         }
 
         await context.Spotify.AddRangeAsync(allEntries, ct);
         await context.SaveChangesAsync(ct);
-        Console.WriteLine($"🎉 Import completed! Total entries: {allEntries.Count}");
+
+        Console.WriteLine($"🎉 Import completed! Files processed: {fileCount}, total entries: {allEntries.Count}");
     }
+
+    public static Task ImportAsync(AppDbContext context, CancellationToken ct = default)
+        => ImportAsync(context, @"C:\Users\Sefzz\Desktop\MyProject\Spotify Extended Streaming History", ct);
 }
-//  dotnet run -- --import-spotify 
-//  --to import Spotify data
+
+
+//  dotnet run -- --import-spotify           || to import Spotify data
+// 
+
+// Invoke-RestMethod -Method Post -Uri https://localhost:5000/api/spotify/enrich/backfill   ||  to backfill existing records

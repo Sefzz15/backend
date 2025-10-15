@@ -18,6 +18,37 @@ namespace backend.Migrations
                 .HasAnnotation("ProductVersion", "8.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
+            modelBuilder.Entity("ArtistCatalog", b =>
+                {
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("FetchedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("ArtistId");
+
+                    b.ToTable("ArtistsCatalog");
+                });
+
+            modelBuilder.Entity("ArtistGenre", b =>
+                {
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Genre")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("ArtistId", "Genre");
+
+                    b.HasIndex("Genre");
+
+                    b.ToTable("ArtistGenres");
+                });
+
             modelBuilder.Entity("Feedback", b =>
                 {
                     b.Property<int>("Fid")
@@ -114,6 +145,10 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    b.Property<string>("TrackId")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
                     b.Property<string>("audiobook_chapter_title")
                         .HasColumnType("longtext");
 
@@ -185,7 +220,65 @@ namespace backend.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TrackId");
+
                     b.ToTable("Spotify");
+                });
+
+            modelBuilder.Entity("TrackArtist", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("ArtistId")
+                        .HasColumnType("varchar(255)");
+
+                    b.HasKey("TrackId", "ArtistId");
+
+                    b.HasIndex("ArtistId");
+
+                    b.ToTable("TrackArtists");
+                });
+
+            modelBuilder.Entity("TrackCatalog", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("AlbumId")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("AlbumName")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("FetchedAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("TrackId");
+
+                    b.ToTable("TracksCatalog");
+                });
+
+            modelBuilder.Entity("TrackGenreWeight", b =>
+                {
+                    b.Property<string>("TrackId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("Genre")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<DateTime>("BuiltAtUtc")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double>("Weight")
+                        .HasColumnType("double");
+
+                    b.HasKey("TrackId", "Genre");
+
+                    b.ToTable("TrackGenreWeights");
                 });
 
             modelBuilder.Entity("User", b =>
@@ -208,6 +301,17 @@ namespace backend.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("ArtistGenre", b =>
+                {
+                    b.HasOne("ArtistCatalog", "Artist")
+                        .WithMany("Genres")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
                 });
 
             modelBuilder.Entity("Feedback", b =>
@@ -249,6 +353,32 @@ namespace backend.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("TrackArtist", b =>
+                {
+                    b.HasOne("ArtistCatalog", "Artist")
+                        .WithMany("TrackArtists")
+                        .HasForeignKey("ArtistId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TrackCatalog", "Track")
+                        .WithMany()
+                        .HasForeignKey("TrackId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Artist");
+
+                    b.Navigation("Track");
+                });
+
+            modelBuilder.Entity("ArtistCatalog", b =>
+                {
+                    b.Navigation("Genres");
+
+                    b.Navigation("TrackArtists");
                 });
 
             modelBuilder.Entity("Order", b =>

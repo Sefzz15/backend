@@ -28,4 +28,7 @@ public class Spotify
     public bool? offline { get; set; }
     public long? offline_timestamp { get; set; }
     public bool? incognito_mode { get; set; }
+
+    [MaxLength(50)]
+    public string? TrackId { get; set; }
 }

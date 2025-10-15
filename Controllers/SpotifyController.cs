@@ -1,16 +1,19 @@
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 [ApiController]
 [Route("api/spotify")]
 public class SpotifyController : ControllerBase
 {
     private readonly SpotifyService _spotifyService;
+    private readonly AppDbContext _context;
 
-    public SpotifyController(SpotifyService spotifyService)
+    public SpotifyController(SpotifyService spotifyService, AppDbContext db)
     {
         _spotifyService = spotifyService;
+        _context = db;
     }
 
     // List + filters
@@ -108,5 +111,89 @@ public class SpotifyController : ControllerBase
         var filters = new SpotifyFilterParams(from, to, type, minMs, query);
         var cells = await _spotifyService.GetHeatmapAsync(filters);
         return Ok(cells);
+    }
+
+    [HttpPost("enrich/backfill")]
+    public async Task<IActionResult> EnrichBackfill([FromServices] SpotifyCatalogService svc, CancellationToken ct)
+    {
+        var inserted = await svc.BackfillAllAsync(ct);
+        return Ok(new { inserted });
+    }
+
+    [HttpPost("enrich/delta")]
+    public async Task<IActionResult> EnrichDelta([FromServices] SpotifyCatalogService svc, CancellationToken ct)
+    {
+        var inserted = await svc.BackfillDeltaAsync(ct);
+        return Ok(new { inserted });
+    }
+
+    [HttpGet("summary/top-genres")]
+    public async Task<IActionResult> GetTopGenres(
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        [FromQuery] int limit = 10,
+        [FromQuery] int minMs = 30000,
+        [FromQuery] string countBy = "time", // "time" | "plays"
+        [FromQuery] string? type = null,
+        [FromQuery] string? query = null)
+    {
+        var f = new SpotifyFilterParams(from, to, type, minMs, query);
+
+        var plays = SpotifyServiceApplyFilters(
+                        _context.Spotify.AsNoTracking().Where(x => x.TrackId != null), f);
+
+        // Join plays -> weights and aggregate server-side to an anonymous type
+        var agg = await (
+            from p in plays
+            join w in _context.TrackGenreWeights on p.TrackId equals w.TrackId
+            group new { p, w } by w.Genre into g
+            select new
+            {
+                Genre = g.Key,
+                PlaysWeighted = g.Sum(x => x.w.Weight),                
+                TotalMsWeightedD = g.Sum(x => x.p.ms_played * x.w.Weight) 
+            })
+            .ToListAsync();
+
+        // Order + take in memory and map to DTO (note: rounding to long)
+        var ordered = countBy.Equals("plays", StringComparison.OrdinalIgnoreCase)
+            ? agg.OrderByDescending(x => x.PlaysWeighted)
+            : agg.OrderByDescending(x => x.TotalMsWeightedD);
+
+        var result = ordered
+            .Take(limit)
+            .Select(x => new TopGenreDto(x.Genre, x.PlaysWeighted, (long)Math.Round(x.TotalMsWeightedD)))
+            .ToList();
+
+        return Ok(result);
+    }
+
+    private IQueryable<Spotify> SpotifyServiceQueryable() => _context.Spotify.AsNoTracking();
+
+    private static IQueryable<Spotify> SpotifyServiceApplyFilters(IQueryable<Spotify> q, SpotifyFilterParams f)
+    {
+        if (f.From.HasValue) q = q.Where(x => x.ts >= f.From.Value);
+        if (f.To.HasValue) q = q.Where(x => x.ts < f.To.Value);
+        if (f.MinMs.HasValue) q = q.Where(x => x.ms_played >= f.MinMs.Value);
+        if (!string.IsNullOrWhiteSpace(f.Type))
+        {
+            switch (f.Type!.ToLowerInvariant())
+            {
+                case "songs": q = q.Where(x => x.spotify_track_uri != null); break;
+                case "podcasts": q = q.Where(x => x.spotify_episode_uri != null); break;
+                case "audiobooks": q = q.Where(x => x.audiobook_uri != null); break;
+            }
+        }
+        if (!string.IsNullOrWhiteSpace(f.Query))
+        {
+            var term = f.Query!.Trim();
+            q = q.Where(x =>
+                (x.master_metadata_track_name != null && EF.Functions.Like(x.master_metadata_track_name, $"%{term}%")) ||
+                (x.master_metadata_album_artist_name != null && EF.Functions.Like(x.master_metadata_album_artist_name, $"%{term}%")) ||
+                (x.episode_name != null && EF.Functions.Like(x.episode_name, $"%{term}%")) ||
+                (x.episode_show_name != null && EF.Functions.Like(x.episode_show_name, $"%{term}%"))
+            );
+        }
+        return q;
     }
 }
