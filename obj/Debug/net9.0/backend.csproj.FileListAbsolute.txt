@@ -165,7 +165,6 @@ C:\Users\arsse\Documents\VisualStudioProjects\backend\bin\Debug\net9.0\runtimes\
 C:\Users\arsse\Documents\VisualStudioProjects\backend\bin\Debug\net9.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
 C:\Users\arsse\Documents\VisualStudioProjects\backend\bin\Debug\net9.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 C:\Users\arsse\Documents\VisualStudioProjects\backend\bin\Debug\net9.0\runtimes\win\lib\net8.0\System.Runtime.Caching.dll
-C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\appsettings.Development.json
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\appsettings.json
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\backend.staticwebassets.endpoints.json
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\backend.exe
@@ -333,3 +332,4 @@ C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\obj\Debug\net9.0\ba
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\obj\Debug\net9.0\backend.genruntimeconfig.cache
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\obj\Debug\net9.0\ref\backend.dll
 C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\System.Linq.Dynamic.Core.dll
+C:\Users\Sefzz\Documents\Visual Studio Code Projects\backend\bin\Debug\net9.0\appsettings.Development.json
