@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
+namespace backend.Models;
+
 public class Product
 {
     [Key]

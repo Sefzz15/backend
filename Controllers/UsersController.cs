@@ -1,5 +1,8 @@
+using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+
+namespace backend.Controllers;
 
 [ApiController]
 [Route("api/users")]

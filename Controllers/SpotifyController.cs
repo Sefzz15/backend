@@ -1,7 +1,10 @@
+using backend.Data;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+namespace backend.Controllers;
 
 [ApiController]
 [Route("api/spotify")]
@@ -140,19 +143,19 @@ public class SpotifyController : ControllerBase
         var f = new SpotifyFilterParams(from, to, type, minMs, query);
 
         var plays = SpotifyServiceApplyFilters(
-                        _context.Spotify.AsNoTracking().Where(x => x.TrackId != null), f);
+            _context.Spotify.AsNoTracking().Where(x => x.TrackId != null), f);
 
         // Join plays -> weights and aggregate server-side to an anonymous type
         var agg = await (
-            from p in plays
-            join w in _context.TrackGenreWeights on p.TrackId equals w.TrackId
-            group new { p, w } by w.Genre into g
-            select new
-            {
-                Genre = g.Key,
-                PlaysWeighted = g.Sum(x => x.w.Weight),                
-                TotalMsWeightedD = g.Sum(x => x.p.ms_played * x.w.Weight) 
-            })
+                from p in plays
+                join w in _context.TrackGenreWeights on p.TrackId equals w.TrackId
+                group new { p, w } by w.Genre into g
+                select new
+                {
+                    Genre = g.Key,
+                    PlaysWeighted = g.Sum(x => x.w.Weight),                
+                    TotalMsWeightedD = g.Sum(x => x.p.ms_played * x.w.Weight) 
+                })
             .ToListAsync();
 
         // Order + take in memory and map to DTO (note: rounding to long)

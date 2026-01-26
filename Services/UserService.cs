@@ -1,4 +1,8 @@
+using backend.Data;
+using backend.Models;
 using Microsoft.EntityFrameworkCore;
+
+namespace backend.Services;
 
 public class UserService
 {
@@ -22,7 +26,7 @@ public class UserService
     public async Task<int?> GetUserIdByUsernameAsync(string username)
     {
         var user = await _context.Users
-                                  .FirstOrDefaultAsync(u => u.Uname == username);
+            .FirstOrDefaultAsync(u => u.Uname == username);
 
         return user?.Uid;  // Return the user ID or null if not found.
     }

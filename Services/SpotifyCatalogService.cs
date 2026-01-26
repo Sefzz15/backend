@@ -1,8 +1,12 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using backend.Data;
+using backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+
+namespace backend.Services;
 
 public class SpotifyOptions
 {
@@ -337,10 +341,10 @@ public class SpotifyCatalogService
         using var doc = await JsonDocument.ParseAsync(s, cancellationToken: ct);
 
         return doc.RootElement
-                  .GetProperty(root)
-                  .EnumerateArray()
-                  .Select(e => e.Clone())   // <- crucial
-                  .ToList();
+            .GetProperty(root)
+            .EnumerateArray()
+            .Select(e => e.Clone())   // <- crucial
+            .ToList();
     }
 
 

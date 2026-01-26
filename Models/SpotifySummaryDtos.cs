@@ -1,3 +1,5 @@
+namespace backend.Models;
+
 public sealed record TopTrackDto(
     string TrackName,
     string ArtistName,

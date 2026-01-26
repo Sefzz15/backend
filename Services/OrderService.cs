@@ -1,4 +1,8 @@
+using backend.Data;
+using backend.Models;
 using Microsoft.EntityFrameworkCore;
+
+namespace backend.Services;
 
 public class OrderService
 {
@@ -13,16 +17,16 @@ public class OrderService
     public async Task<IEnumerable<Order>> GetAllOrders()
     {
         return await _context.Orders
-                             .Include(o => o.User)
-                             .ToListAsync();
+            .Include(o => o.User)
+            .ToListAsync();
     }
 
     // Get order by ID
     public async Task<Order?> GetOrderById(int id)
     {
         return await _context.Orders
-                             .Include(o => o.User)
-                             .FirstOrDefaultAsync(o => o.Oid == id);
+            .Include(o => o.User)
+            .FirstOrDefaultAsync(o => o.Oid == id);
     }
 
     // Add new order
@@ -54,8 +58,8 @@ public class OrderService
     public async Task<IEnumerable<Order>> GetOrdersByUserId(int userId)
     {
         return await _context.Orders
-                             .Include(o => o.User)
-                             .Where(o => o.Uid == userId)
-                             .ToListAsync();
+            .Include(o => o.User)
+            .Where(o => o.Uid == userId)
+            .ToListAsync();
     }
 }

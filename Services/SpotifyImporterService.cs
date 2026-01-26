@@ -1,4 +1,8 @@
+using backend.Data;
+using backend.Models;
 using Newtonsoft.Json;
+
+namespace backend.Services;
 
 public static class SpotifyImporter
 {

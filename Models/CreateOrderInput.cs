@@ -1,3 +1,5 @@
+namespace backend.Models;
+
 public class CreateOrderInput
 {
     public int Uid { get; set; }

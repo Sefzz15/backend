@@ -1,4 +1,8 @@
+using backend.Data;
+using backend.Models;
 using Microsoft.EntityFrameworkCore;
+
+namespace backend.Services;
 
 public class OrderDetailService
 {
@@ -16,10 +20,10 @@ public class OrderDetailService
         
 
         return await _context.OrderDetails
-        .Include(od => od.Product)
-        .Include(od => od.Order)
-        .Include(od => od.Order.User)
-        .ToListAsync();
+            .Include(od => od.Product)
+            .Include(od => od.Order)
+            .Include(od => od.Order.User)
+            .ToListAsync();
     }
     public async Task<OrderDetail?> GetOrderDetailById(int id)
     {

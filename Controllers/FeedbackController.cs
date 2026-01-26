@@ -1,5 +1,10 @@
+using backend.Data;
+using backend.Models;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -40,7 +45,7 @@ public class FeedbackController : ControllerBase
         return Ok(new { message = "Feedback submitted successfully" });
     }
 
-        [HttpDelete("{id}")]
+    [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
         await _feedbackService.DeleteFeedback(id);

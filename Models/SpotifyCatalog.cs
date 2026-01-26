@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+namespace backend.Models;
+
 public class TrackCatalog
 {
     [Key] public string TrackId { get; set; } = null!;

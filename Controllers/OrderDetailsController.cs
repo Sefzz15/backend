@@ -1,6 +1,8 @@
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
+namespace backend.Controllers;
+
 [ApiController]
 [Route("api/orderdetails")]
 public class OrderDetailsController : ControllerBase

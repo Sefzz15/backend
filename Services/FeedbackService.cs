@@ -1,4 +1,8 @@
+using backend.Data;
+using backend.Models;
 using Microsoft.EntityFrameworkCore;
+
+namespace backend.Services;
 
 public class FeedbackService
 {
@@ -13,16 +17,16 @@ public class FeedbackService
     public async Task<IEnumerable<Feedback>> GetAllFeedbacks()
     {
         return await _context.Feedbacks
-                             .Include(f => f.User)
-                             .ToListAsync();
+            .Include(f => f.User)
+            .ToListAsync();
     }
 
     // Get feedback by ID
     public async Task<Feedback?> GetFeedbackById(int id)
     {
         return await _context.Feedbacks
-                             .Include(f => f.User)
-                             .FirstOrDefaultAsync(f => f.Fid == id);
+            .Include(f => f.User)
+            .FirstOrDefaultAsync(f => f.Fid == id);
     }
 
     // Add new feedback
@@ -54,8 +58,8 @@ public class FeedbackService
     public async Task<IEnumerable<Feedback>> GetFeedbacksByUserId(int userId)
     {
         return await _context.Feedbacks
-                             .Include(f => f.User)
-                             .Where(f => f.Uid == userId)
-                             .ToListAsync();
+            .Include(f => f.User)
+            .Where(f => f.Uid == userId)
+            .ToListAsync();
     }
 }
