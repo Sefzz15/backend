@@ -15,16 +15,13 @@ public class OrderDetailService
 
     public async Task<IEnumerable<OrderDetail>> GetAllOrderDetails()
     {
-
-        // return await _context.OrderDetails.ToListAsync();
-        
-
         return await _context.OrderDetails
             .Include(od => od.Product)
             .Include(od => od.Order)
             .Include(od => od.Order.User)
             .ToListAsync();
     }
+
     public async Task<OrderDetail?> GetOrderDetailById(int id)
     {
         return await _context.OrderDetails.FindAsync(id);
@@ -42,11 +39,11 @@ public class OrderDetailService
             throw new ArgumentException("Order should contain at least one product.");
         }
 
-        var orderDetails = new List<OrderDetail>();
+        List<OrderDetail> orderDetails = new List<OrderDetail>();
 
-        foreach (var detail in order.OrderDetails)
+        foreach (OrderDetail detail in order.OrderDetails)
         {
-            var product = await _context.Products.FindAsync(detail.Pid);
+            Product? product = await _context.Products.FindAsync(detail.Pid);
             if (product == null)
             {
                 throw new ArgumentException($"Product with ID {detail.Pid} not found.");
@@ -61,7 +58,7 @@ public class OrderDetailService
             product.Stock -= detail.Quantity;
 
             // Create the OrderDetail object
-            var newOrderDetail = new OrderDetail
+            OrderDetail newOrderDetail = new OrderDetail
             {
                 Pid = detail.Pid,
                 Quantity = detail.Quantity,
@@ -73,5 +70,4 @@ public class OrderDetailService
 
         return orderDetails;
     }
-
 }

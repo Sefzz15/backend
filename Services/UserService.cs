@@ -25,16 +25,17 @@ public class UserService
 
     public async Task<int?> GetUserIdByUsernameAsync(string username)
     {
-        var user = await _context.Users
+        User? user = await _context.Users
             .FirstOrDefaultAsync(u => u.Uname == username);
 
-        return user?.Uid;  // Return the user ID or null if not found.
+        return user?.Uid; // Return the user ID or null if not found.
     }
 
     public async Task<User?> GetUserByUsernameAsync(string username)
     {
         return await _context.Users.FirstOrDefaultAsync(u => u.Uname == username);
     }
+
     public async Task AddUser(User user)
     {
         _context.Users.Add(user);
@@ -55,7 +56,7 @@ public class UserService
 
     public async Task DeleteUser(int id)
     {
-        var user = await _context.Users.FindAsync(id);
+        User? user = await _context.Users.FindAsync(id);
         if (user != null)
         {
             _context.Users.Remove(user);

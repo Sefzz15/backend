@@ -18,17 +18,17 @@ public static class SpotifyImporter
             return;
         }
 
-        var jsonFiles = Directory.EnumerateFiles(directory, "*.json", SearchOption.AllDirectories);
+        IEnumerable<string> jsonFiles = Directory.EnumerateFiles(directory, "*.json", SearchOption.AllDirectories);
 
-        var allEntries = new List<Spotify>();
+        List<Spotify> allEntries = new List<Spotify>();
         int fileCount = 0;
 
-        foreach (var file in jsonFiles)
+        foreach (string file in jsonFiles)
         {
             try
             {
-                var json = await File.ReadAllTextAsync(file, ct);
-                var entries = JsonConvert.DeserializeObject<List<Spotify>>(json);
+                string json = await File.ReadAllTextAsync(file, ct);
+                List<Spotify>? entries = JsonConvert.DeserializeObject<List<Spotify>>(json);
 
                 if (entries is { Count: > 0 })
                 {

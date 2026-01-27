@@ -3,7 +3,7 @@ using backend.Services;
 using System.Text.Json.Serialization;
 using backend.Data;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // CORS
 builder.Services.AddCors(options =>
@@ -27,7 +27,7 @@ builder.Logging.AddConsole();
 
 
 // Configuration / Connection string
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrEmpty(connectionString))
 {
     throw new InvalidOperationException("Connection string 'DefaultConnection' is not configured.");
@@ -73,14 +73,14 @@ builder.Services.AddHttpClient<SpotifyCatalogService>(client =>
 // .ConfigurePrimaryHttpMessageHandler is not tested
 
 // Build app
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 
 // Optional: import Spotify data
 if (args.Contains("--import-spotify"))
 {
-    using var scope = app.Services.CreateScope();
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    using IServiceScope scope = app.Services.CreateScope();
+    AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await SpotifyImporter.ImportAsync(db);
     return;
 }

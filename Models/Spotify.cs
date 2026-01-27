@@ -4,8 +4,7 @@ namespace backend.Models;
 
 public class Spotify
 {
-    [Key]
-    public int Id { get; set; }  // primary key
+    [Key] public int Id { get; set; } // primary key
 
     public DateTime ts { get; set; }
     public string? platform { get; set; }
@@ -31,6 +30,5 @@ public class Spotify
     public long? offline_timestamp { get; set; }
     public bool? incognito_mode { get; set; }
 
-    [MaxLength(50)]
-    public string? TrackId { get; set; }
+    [MaxLength(50)] public string? TrackId { get; set; }
 }

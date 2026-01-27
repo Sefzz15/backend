@@ -4,7 +4,6 @@ namespace backend.Models;
 
 public class OrderDetail
 {
-
     public int Oid { get; set; }
 
     public int Pid { get; set; }

@@ -3,6 +3,7 @@ using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace backend.Controllers;
 
@@ -20,13 +21,12 @@ public class OrderController : ControllerBase
         _orderService = orderService;
         _orderDetailService = orderDetailService;
         _context = context;
-
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetAllOrders()
     {
-        var orders = await _orderService.GetAllOrders();
+        IEnumerable<Order> orders = await _orderService.GetAllOrders();
 
         var result = orders.Select(order => new
         {
@@ -41,17 +41,17 @@ public class OrderController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderInput input)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
             // Step 1: Check Stock
-            var productIds = input.OrderDetails.Select(od => od.Pid).ToList();
-            var products = await _context.Products
+            List<int> productIds = input.OrderDetails.Select(od => od.Pid).ToList();
+            Dictionary<int, Product> products = await _context.Products
                 .Where(p => productIds.Contains(p.Pid))
                 .ToDictionaryAsync(p => p.Pid);
 
-            foreach (var item in input.OrderDetails)
+            foreach (OrderDetailInput item in input.OrderDetails)
             {
                 if (!products.ContainsKey(item.Pid))
                     return BadRequest(new { message = $"Product with ID {item.Pid} does not exist." });
@@ -61,7 +61,7 @@ public class OrderController : ControllerBase
             }
 
             // Step 2: Create Order
-            var order = new Order
+            Order order = new Order
             {
                 Uid = input.Uid,
                 Date = DateTime.Now
@@ -71,7 +71,7 @@ public class OrderController : ControllerBase
             await _context.SaveChangesAsync();
 
             // Step 3: Create OrderDetails and Update Stock
-            foreach (var item in input.OrderDetails)
+            foreach (OrderDetailInput item in input.OrderDetails)
             {
                 _context.OrderDetails.Add(new OrderDetail
                 {
@@ -98,7 +98,7 @@ public class OrderController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrderById(int id)
     {
-        var order = await _orderService.GetOrderById(id);
+        Order? order = await _orderService.GetOrderById(id);
         if (order == null) return NotFound();
 
         var result = new
@@ -121,7 +121,6 @@ public class OrderController : ControllerBase
 
         return Ok(order);
     }
-
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateOrder(int id, [FromBody] Order order)

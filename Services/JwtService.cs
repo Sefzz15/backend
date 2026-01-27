@@ -17,7 +17,7 @@ namespace backend.Services
         public string GenerateJwtToken(string username)
         {
             // Retrieve the secret key from the configuration
-            var secretKey = _configuration["Jwt:Secret"];
+            string? secretKey = _configuration["Jwt:Secret"];
 
             // Check if the secretKey is null or empty
             if (string.IsNullOrEmpty(secretKey))
@@ -25,17 +25,17 @@ namespace backend.Services
                 throw new InvalidOperationException("JWT secret key is not configured.");
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            Claim[] claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, username),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             // Create the token
-            var token = new JwtSecurityToken(
+            JwtSecurityToken token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,

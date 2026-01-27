@@ -46,7 +46,7 @@ public class OrderService
     // Delete order by ID
     public async Task DeleteOrder(int id)
     {
-        var order = await _context.Orders.FindAsync(id);
+        Order? order = await _context.Orders.FindAsync(id);
         if (order != null)
         {
             _context.Orders.Remove(order);

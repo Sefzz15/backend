@@ -46,7 +46,7 @@ public class FeedbackService
     // Delete feedback by ID
     public async Task DeleteFeedback(int id)
     {
-        var feedback = await _context.Feedbacks.FindAsync(id);
+        Feedback? feedback = await _context.Feedbacks.FindAsync(id);
         if (feedback != null)
         {
             _context.Feedbacks.Remove(feedback);

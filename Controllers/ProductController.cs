@@ -1,4 +1,3 @@
-
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -19,14 +18,14 @@ public class ProductController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllProducts()
     {
-        var products = await _productService.GetAllProducts();
+        IEnumerable<Product> products = await _productService.GetAllProducts();
         return Ok(products);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetProductById(int id)
     {
-        var product = await _productService.GetProductById(id);
+        Product? product = await _productService.GetProductById(id);
         if (product == null) return NotFound();
         return Ok(product);
     }

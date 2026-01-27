@@ -19,17 +19,19 @@ public class FeedbackController : ControllerBase
         _context = context;
         _feedbackService = feedbackService;
     }
+
     [HttpGet]
     public async Task<IActionResult> GetAllFeedbacks()
     {
-        var feedbacks = await _feedbackService.GetAllFeedbacks();
+        IEnumerable<Feedback> feedbacks = await _feedbackService.GetAllFeedbacks();
         return Ok(feedbacks);
     }
+
     [HttpPost]
     public async Task<IActionResult> PostFeedback([FromBody] Feedback feedback)
     {
         // Optional: ensure the user exists
-        var userExists = await _context.Users.AnyAsync(u => u.Uid == feedback.Uid);
+        bool userExists = await _context.Users.AnyAsync(u => u.Uid == feedback.Uid);
         if (!userExists)
             return NotFound("User not found");
 

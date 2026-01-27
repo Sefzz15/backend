@@ -1,4 +1,3 @@
-
 using backend.Data;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -38,7 +37,7 @@ public class ProductService
 
     public async Task DeleteProduct(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        Product? product = await _context.Products.FindAsync(id);
         if (product != null)
         {
             _context.Products.Remove(product);

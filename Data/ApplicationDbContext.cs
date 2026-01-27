@@ -3,11 +3,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-
-    // Existing
     public DbSet<User> Users { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Order> Orders { get; set; }
@@ -15,7 +12,6 @@ public class AppDbContext : DbContext
     public DbSet<Feedback> Feedbacks { get; set; }
     public DbSet<Spotify> Spotify { get; set; }
 
-    // NEW catalog/cache sets
     public DbSet<TrackCatalog> TracksCatalog { get; set; } = null!;
     public DbSet<ArtistCatalog> ArtistsCatalog { get; set; } = null!;
     public DbSet<TrackArtist> TrackArtists { get; set; } = null!;
@@ -26,7 +22,6 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // ---- existing mappings (as you already had) ----
         modelBuilder.Entity<User>().HasKey(u => u.Uid);
         modelBuilder.Entity<User>().HasIndex(u => u.Uname).IsUnique();
 

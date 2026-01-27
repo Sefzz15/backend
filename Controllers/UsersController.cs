@@ -15,20 +15,19 @@ public class UserController : ControllerBase
     {
         _userService = userService;
         _jwtService = jwtService;
-
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
-        var users = await _userService.GetAllUsers();
+        IEnumerable<User> users = await _userService.GetAllUsers();
         return Ok(users);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {
-        var user = await _userService.GetUserById(id);
+        User? user = await _userService.GetUserById(id);
         if (user == null) return NotFound();
         return Ok(user);
     }
@@ -42,7 +41,7 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username is required." });
         }
 
-        var userId = await _userService.GetUserIdByUsernameAsync(username);
+        int? userId = await _userService.GetUserIdByUsernameAsync(username);
 
         if (userId == null)
         {
@@ -60,19 +59,19 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username and Password are required." });
         }
 
-        var user = await _userService.GetUserByUsernameAsync(request.Username);
+        User? user = await _userService.GetUserByUsernameAsync(request.Username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Upass))
         {
             return Unauthorized(new { message = "Invalid username or password." });
         }
 
-        var token = _jwtService.GenerateJwtToken(user.Uname);
+        string token = _jwtService.GenerateJwtToken(user.Uname);
 
         return Ok(new
         {
             message = "Login successful!",
-            token = token,
+            token,
             user = new
             {
                 user.Uid,
@@ -94,6 +93,7 @@ public class UserController : ControllerBase
         {
             return Conflict(new { message = "Username already exists." });
         }
+
         // Hash the password before saving
         user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
 

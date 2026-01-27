@@ -1,3 +1,4 @@
+using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,20 +13,19 @@ public class OrderDetailsController : ControllerBase
     public OrderDetailsController(OrderDetailService orderDetailService)
     {
         _orderDetailService = orderDetailService;
-
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllOrderDetails()
     {
-        var orderDetails = await _orderDetailService.GetAllOrderDetails();
+        IEnumerable<OrderDetail> orderDetails = await _orderDetailService.GetAllOrderDetails();
         return Ok(orderDetails);
     }
 
     [HttpGet("formatted")]
     public async Task<IActionResult> GetAllOrderDetailsFormatted()
     {
-        var orderDetails = await _orderDetailService.GetAllOrderDetails();
+        IEnumerable<OrderDetail> orderDetails = await _orderDetailService.GetAllOrderDetails();
 
         var result = orderDetails.Select(od => new
         {

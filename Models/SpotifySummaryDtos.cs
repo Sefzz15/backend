@@ -25,7 +25,7 @@ public sealed record HeatCellDto(
 public sealed record SpotifyFilterParams(
     DateTime? From,
     DateTime? To,
-    string? Type,   // "songs" | "podcasts" | "audiobooks" | null
+    string? Type, // "songs" | "podcasts" | "audiobooks" | null
     int? MinMs,
     string? Query
 );
