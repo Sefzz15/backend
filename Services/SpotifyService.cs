@@ -154,43 +154,31 @@ public class SpotifyService
 
     public async Task<IReadOnlyList<TopArtistDto>> GetTopArtistsAsync(int limit, string countBy, SpotifyFilterParams f)
     {
-        IQueryable<Spotify> baseQ = ApplyFilters(BaseQuery, f).Where(x => x.master_metadata_album_artist_name != null);
+        IQueryable<Spotify> q = ApplyFilters(BaseQuery, f)
+            .Where(x => x.master_metadata_album_artist_name != null);
 
-        // 1) First aggregate (plays/totalMs) server-side
-        var agg = await baseQ
-            .GroupBy(x => x.master_metadata_album_artist_name)
+        var agg = await q
+            .GroupBy(x => x.master_metadata_album_artist_name!)
             .Select(g => new
             {
-                ArtistName = g.Key!,
+                ArtistName = g.Key,
                 Plays = g.Count(),
-                TotalMs = g.Sum(x => (long)x.ms_played)
+                TotalMs = g.Sum(x => (long)x.ms_played),
+
+                UniqueTracks = g
+                    .Where(x => x.master_metadata_track_name != null)
+                    .Select(x => x.master_metadata_track_name!)
+                    .Distinct()
+                    .Count()
             })
             .OrderByDescending(x => countBy.Equals("plays", StringComparison.OrdinalIgnoreCase) ? x.Plays : x.TotalMs)
             .ThenBy(x => x.ArtistName)
             .Take(limit)
             .ToListAsync();
 
-        // 2) Compute unique track counts for those top artists, server-side via two-level grouping
-        List<string> artistNames = agg.Select(a => a.ArtistName).ToList();
-
-        var uniqueCounts = await ApplyFilters(BaseQuery, f)
-            .Where(x => x.master_metadata_album_artist_name != null &&
-                        artistNames.Contains(x.master_metadata_album_artist_name))
-            .GroupBy(x => new { x.master_metadata_album_artist_name, x.master_metadata_track_name })
-            .Select(g => new { ArtistName = g.Key.master_metadata_album_artist_name! })
-            .GroupBy(x => x.ArtistName)
-            .Select(g => new { ArtistName = g.Key, UniqueTracks = g.Count() })
-            .ToListAsync();
-
-        Dictionary<string, int> uniqueMap = uniqueCounts.ToDictionary(x => x.ArtistName, x => x.UniqueTracks);
-
-        // 3) Map to DTOs
-        return agg.Select(a => new TopArtistDto(
-            a.ArtistName,
-            a.Plays,
-            a.TotalMs,
-            uniqueMap.GetValueOrDefault(a.ArtistName, 0)
-        )).ToList();
+        return agg
+            .Select(a => new TopArtistDto(a.ArtistName, a.Plays, a.TotalMs, a.UniqueTracks))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<HeatCellDto>> GetHeatmapAsync(SpotifyFilterParams f)
