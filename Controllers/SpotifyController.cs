@@ -8,17 +8,8 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/spotify")]
-public class SpotifyController : ControllerBase
+public class SpotifyController(SpotifyQueryService spotifyService, AppDbContext db) : ControllerBase
 {
-    private readonly SpotifyService _spotifyService;
-    private readonly AppDbContext _context;
-
-    public SpotifyController(SpotifyService spotifyService, AppDbContext db)
-    {
-        _spotifyService = spotifyService;
-        _context = db;
-    }
-
     // List + filters
     [HttpGet]
     public async Task<ActionResult<PaginatedResponse<Spotify>>> GetAllSpotify(
@@ -38,7 +29,7 @@ public class SpotifyController : ControllerBase
 
         SpotifyFilterParams filters = new SpotifyFilterParams(from, to, type, minMs, query);
         PaginatedResponse<Spotify> result =
-            await _spotifyService.GetSpotifyPageWithMetadata(page, pageSize, sortColumn, sortDirection, filters);
+            await spotifyService.GetSpotifyPageWithMetadata(page, pageSize, sortColumn, sortDirection, filters);
         return Ok(result);
     }
 
@@ -46,7 +37,7 @@ public class SpotifyController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSpotifyById(int id)
     {
-        Spotify? spotify = await _spotifyService.GetSpotifyById(id);
+        Spotify? spotify = await spotifyService.GetSpotifyById(id);
         if (spotify == null) return NotFound();
         return Ok(spotify);
     }
@@ -54,7 +45,7 @@ public class SpotifyController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddSpotify([FromBody] Spotify spotify)
     {
-        await _spotifyService.AddSpotify(spotify);
+        await spotifyService.AddSpotify(spotify);
         return CreatedAtAction(nameof(GetSpotifyById), new { id = spotify.Id }, spotify);
     }
 
@@ -62,14 +53,14 @@ public class SpotifyController : ControllerBase
     public async Task<IActionResult> UpdateSpotify(int id, [FromBody] Spotify spotify)
     {
         if (id != spotify.Id) return BadRequest();
-        await _spotifyService.UpdateSpotify(spotify);
+        await spotifyService.UpdateSpotify(spotify);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteSpotify(int id)
     {
-        await _spotifyService.DeleteSpotify(id);
+        await spotifyService.DeleteSpotify(id);
         return NoContent();
     }
 
@@ -85,7 +76,7 @@ public class SpotifyController : ControllerBase
         [FromQuery] string? query = null)
     {
         SpotifyFilterParams filters = new SpotifyFilterParams(from, to, type, minMs, query);
-        IReadOnlyList<TopTrackDto> data = await _spotifyService.GetTopTracksAsync(limit, countBy, filters);
+        IReadOnlyList<TopTrackDto> data = await spotifyService.GetTopTracksAsync(limit, countBy, filters);
         return Ok(data);
     }
 
@@ -100,7 +91,7 @@ public class SpotifyController : ControllerBase
         [FromQuery] string? query = null)
     {
         SpotifyFilterParams filters = new SpotifyFilterParams(from, to, type, minMs, query);
-        IReadOnlyList<TopArtistDto> data = await _spotifyService.GetTopArtistsAsync(limit, countBy, filters);
+        IReadOnlyList<TopArtistDto> data = await spotifyService.GetTopArtistsAsync(limit, countBy, filters);
         return Ok(data);
     }
 
@@ -113,19 +104,19 @@ public class SpotifyController : ControllerBase
         [FromQuery] string? query = null)
     {
         SpotifyFilterParams filters = new SpotifyFilterParams(from, to, type, minMs, query);
-        IReadOnlyList<HeatCellDto> cells = await _spotifyService.GetHeatmapAsync(filters);
+        IReadOnlyList<HeatCellDto> cells = await spotifyService.GetHeatmapAsync(filters);
         return Ok(cells);
     }
 
     [HttpPost("enrich/backfill")]
-    public async Task<IActionResult> EnrichBackfill([FromServices] SpotifyCatalogService svc, CancellationToken ct)
+    public async Task<IActionResult> EnrichBackfill([FromServices] SpotifyEnricher svc, CancellationToken ct)
     {
         int inserted = await svc.BackfillAllAsync(ct);
         return Ok(new { inserted });
     }
 
     [HttpPost("enrich/delta")]
-    public async Task<IActionResult> EnrichDelta([FromServices] SpotifyCatalogService svc, CancellationToken ct)
+    public async Task<IActionResult> EnrichDelta([FromServices] SpotifyEnricher svc, CancellationToken ct)
     {
         int inserted = await svc.BackfillDeltaAsync(ct);
         return Ok(new { inserted });
@@ -143,13 +134,13 @@ public class SpotifyController : ControllerBase
     {
         SpotifyFilterParams f = new SpotifyFilterParams(from, to, type, minMs, query);
 
-        IQueryable<Spotify> plays = SpotifyServiceApplyFilters(
-            _context.Spotify.AsNoTracking().Where(x => x.TrackId != null), f);
+        IQueryable<Spotify> plays = SpotifyQueryService.ApplyFilters(
+            db.Spotify.AsNoTracking().Where(x => x.TrackId != null), f);
 
         // Join plays -> weights and aggregate server-side to an anonymous type
         var agg = await (
                 from p in plays
-                join w in _context.TrackGenreWeights on p.TrackId equals w.TrackId
+                join w in db.TrackGenreWeights on p.TrackId equals w.TrackId
                 group new { p, w } by w.Genre
                 into g
                 select new
@@ -171,38 +162,5 @@ public class SpotifyController : ControllerBase
             .ToList();
 
         return Ok(result);
-    }
-
-    private IQueryable<Spotify> SpotifyServiceQueryable() => _context.Spotify.AsNoTracking();
-
-    private static IQueryable<Spotify> SpotifyServiceApplyFilters(IQueryable<Spotify> q, SpotifyFilterParams f)
-    {
-        if (f.From.HasValue) q = q.Where(x => x.ts >= f.From.Value);
-        if (f.To.HasValue) q = q.Where(x => x.ts < f.To.Value);
-        if (f.MinMs.HasValue) q = q.Where(x => x.ms_played >= f.MinMs.Value);
-        if (!string.IsNullOrWhiteSpace(f.Type))
-        {
-            switch (f.Type!.ToLowerInvariant())
-            {
-                case "songs": q = q.Where(x => x.spotify_track_uri != null); break;
-                case "podcasts": q = q.Where(x => x.spotify_episode_uri != null); break;
-                case "audiobooks": q = q.Where(x => x.audiobook_uri != null); break;
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(f.Query))
-        {
-            string term = f.Query!.Trim();
-            q = q.Where(x =>
-                (x.master_metadata_track_name != null &&
-                 EF.Functions.Like(x.master_metadata_track_name, $"%{term}%")) ||
-                (x.master_metadata_album_artist_name != null &&
-                 EF.Functions.Like(x.master_metadata_album_artist_name, $"%{term}%")) ||
-                (x.episode_name != null && EF.Functions.Like(x.episode_name, $"%{term}%")) ||
-                (x.episode_show_name != null && EF.Functions.Like(x.episode_show_name, $"%{term}%"))
-            );
-        }
-
-        return q;
     }
 }

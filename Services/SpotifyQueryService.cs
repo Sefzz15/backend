@@ -5,11 +5,8 @@ using backend.Data;
 
 namespace backend.Services;
 
-public class SpotifyService
+public class SpotifyQueryService(AppDbContext context)
 {
-    private readonly AppDbContext _context;
-    public SpotifyService(AppDbContext context) => _context = context;
-
     // Sorting whitelist
     private static readonly HashSet<string> SortableColumns = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -19,9 +16,9 @@ public class SpotifyService
         nameof(Spotify.episode_name), nameof(Spotify.episode_show_name)
     };
 
-    private IQueryable<Spotify> BaseQuery => _context.Spotify.AsNoTracking();
+    private IQueryable<Spotify> BaseQuery => context.Spotify.AsNoTracking();
 
-    private static IQueryable<Spotify> ApplyFilters(IQueryable<Spotify> q, SpotifyFilterParams f)
+    public static IQueryable<Spotify> ApplyFilters(IQueryable<Spotify> q, SpotifyFilterParams f)
     {
         if (f.From.HasValue) q = q.Where(x => x.ts >= f.From.Value);
         if (f.To.HasValue) q = q.Where(x => x.ts < f.To.Value);
@@ -100,28 +97,28 @@ public class SpotifyService
     };
 
     // CRUD
-    public Task<List<Spotify>> GetAllSpotify() => _context.Spotify.AsNoTracking().ToListAsync();
-    public Task<Spotify?> GetSpotifyById(int id) => _context.Spotify.FindAsync(id).AsTask();
+    public Task<List<Spotify>> GetAllSpotify() => context.Spotify.AsNoTracking().ToListAsync();
+    public Task<Spotify?> GetSpotifyById(int id) => context.Spotify.FindAsync(id).AsTask();
 
     public async Task AddSpotify(Spotify spotify)
     {
-        _context.Spotify.Add(spotify);
-        await _context.SaveChangesAsync();
+        context.Spotify.Add(spotify);
+        await context.SaveChangesAsync();
     }
 
     public async Task UpdateSpotify(Spotify spotify)
     {
-        _context.Spotify.Update(spotify);
-        await _context.SaveChangesAsync();
+        context.Spotify.Update(spotify);
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteSpotify(int id)
     {
-        Spotify? spotify = await _context.Spotify.FindAsync(id);
+        Spotify? spotify = await context.Spotify.FindAsync(id);
         if (spotify is not null)
         {
-            _context.Spotify.Remove(spotify);
-            await _context.SaveChangesAsync();
+            context.Spotify.Remove(spotify);
+            await context.SaveChangesAsync();
         }
     }
 

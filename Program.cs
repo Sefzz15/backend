@@ -54,13 +54,13 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<OrderDetailService>();
 builder.Services.AddScoped<FeedbackService>();
-builder.Services.AddScoped<SpotifyService>();
+builder.Services.AddScoped<SpotifyQueryService>();
 
 builder.Services.Configure<SpotifyOptions>(builder.Configuration.GetSection("Spotify"));
 
 
 // HttpClient(s)
-builder.Services.AddHttpClient<SpotifyCatalogService>(client =>
+builder.Services.AddHttpClient<SpotifyEnricher>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(100);
 })
