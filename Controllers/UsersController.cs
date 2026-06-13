@@ -6,28 +6,19 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/users")]
-public class UserController : ControllerBase
+public class UserController(UserService userService, JwtService jwtService) : ControllerBase
 {
-    private readonly UserService _userService;
-    private readonly JwtService _jwtService;
-
-    public UserController(UserService userService, JwtService jwtService)
-    {
-        _userService = userService;
-        _jwtService = jwtService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllUsers()
     {
-        IEnumerable<User> users = await _userService.GetAllUsers();
+        IEnumerable<User> users = await userService.GetAllUsers();
         return Ok(users);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {
-        User? user = await _userService.GetUserById(id);
+        User? user = await userService.GetUserById(id);
         if (user == null) return NotFound();
         return Ok(user);
     }
@@ -41,7 +32,7 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username is required." });
         }
 
-        int? userId = await _userService.GetUserIdByUsernameAsync(username);
+        int? userId = await userService.GetUserIdByUsernameAsync(username);
 
         if (userId == null)
         {
@@ -59,14 +50,14 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username and Password are required." });
         }
 
-        User? user = await _userService.GetUserByUsernameAsync(request.Username);
+        User? user = await userService.GetUserByUsernameAsync(request.Username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Upass))
         {
             return Unauthorized(new { message = "Invalid username or password." });
         }
 
-        string token = _jwtService.GenerateJwtToken(user.Uname);
+        string token = jwtService.GenerateJwtToken(user.Uname);
 
         return Ok(new
         {
@@ -89,7 +80,7 @@ public class UserController : ControllerBase
             return BadRequest(new { message = "Username and Password are required." });
         }
 
-        if (await _userService.UsernameExistsAsync(user.Uname))
+        if (await userService.UsernameExistsAsync(user.Uname))
         {
             return Conflict(new { message = "Username already exists." });
         }
@@ -97,7 +88,7 @@ public class UserController : ControllerBase
         // Hash the password before saving
         user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
 
-        await _userService.AddUser(user);
+        await userService.AddUser(user);
         return CreatedAtAction(nameof(GetUserById), new { id = user.Uid }, user);
     }
 
@@ -112,7 +103,7 @@ public class UserController : ControllerBase
             user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
         }
 
-        await _userService.UpdateUser(user);
+        await userService.UpdateUser(user);
         return NoContent();
     }
 
@@ -120,7 +111,7 @@ public class UserController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        await _userService.DeleteUser(id);
+        await userService.DeleteUser(id);
         return NoContent();
     }
 }

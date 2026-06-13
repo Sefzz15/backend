@@ -9,24 +9,15 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/orders")]
-public class OrderController : ControllerBase
+public class OrderController(OrderService orderService, AppDbContext context, OrderDetailService orderDetailService)
+    : ControllerBase
 {
-    private readonly OrderService _orderService;
-    private readonly OrderDetailService _orderDetailService;
-    private readonly AppDbContext _context;
-
-    public OrderController(OrderService orderService, AppDbContext context, OrderDetailService orderDetailService)
-
-    {
-        _orderService = orderService;
-        _orderDetailService = orderDetailService;
-        _context = context;
-    }
+    private readonly OrderDetailService _orderDetailService = orderDetailService;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetAllOrders()
     {
-        IEnumerable<Order> orders = await _orderService.GetAllOrders();
+        IEnumerable<Order> orders = await orderService.GetAllOrders();
 
         var result = orders.Select(order => new
         {
@@ -41,13 +32,13 @@ public class OrderController : ControllerBase
     [HttpPost("create")]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderInput input)
     {
-        using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
+        await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync();
 
         try
         {
             // Step 1: Check Stock
             List<int> productIds = input.OrderDetails.Select(od => od.Pid).ToList();
-            Dictionary<int, Product> products = await _context.Products
+            Dictionary<int, Product> products = await context.Products
                 .Where(p => productIds.Contains(p.Pid))
                 .ToDictionaryAsync(p => p.Pid);
 
@@ -67,13 +58,13 @@ public class OrderController : ControllerBase
                 Date = DateTime.Now
             };
 
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            context.Orders.Add(order);
+            await context.SaveChangesAsync();
 
             // Step 3: Create OrderDetails and Update Stock
             foreach (OrderDetailInput item in input.OrderDetails)
             {
-                _context.OrderDetails.Add(new OrderDetail
+                context.OrderDetails.Add(new OrderDetail
                 {
                     Oid = order.Oid,
                     Pid = item.Pid,
@@ -83,7 +74,7 @@ public class OrderController : ControllerBase
                 products[item.Pid].Stock -= item.Quantity;
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             await transaction.CommitAsync();
 
             return Ok(order);
@@ -98,7 +89,7 @@ public class OrderController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrderById(int id)
     {
-        Order? order = await _orderService.GetOrderById(id);
+        Order? order = await orderService.GetOrderById(id);
         if (order == null) return NotFound();
 
         var result = new
@@ -116,8 +107,8 @@ public class OrderController : ControllerBase
     {
         order.Date = DateTime.Now;
 
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
+        context.Orders.Add(order);
+        await context.SaveChangesAsync();
 
         return Ok(order);
     }
@@ -126,14 +117,14 @@ public class OrderController : ControllerBase
     public async Task<IActionResult> UpdateOrder(int id, [FromBody] Order order)
     {
         if (id != order.Oid) return BadRequest();
-        await _orderService.UpdateOrder(order);
+        await orderService.UpdateOrder(order);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteOrder(int id)
     {
-        await _orderService.DeleteOrder(id);
+        await orderService.DeleteOrder(id);
         return NoContent();
     }
 }

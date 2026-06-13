@@ -4,27 +4,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services;
 
-public class OrderDetailService
+public class OrderDetailService(AppDbContext context)
 {
-    private readonly AppDbContext _context;
-
-    public OrderDetailService(AppDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<IEnumerable<OrderDetail>> GetAllOrderDetails()
     {
-        return await _context.OrderDetails
+        return await context.OrderDetails
             .Include(od => od.Product)
             .Include(od => od.Order)
-            .Include(od => od.Order.User)
+                .ThenInclude(o => o!.User)
             .ToListAsync();
     }
 
     public async Task<OrderDetail?> GetOrderDetailById(int id)
     {
-        return await _context.OrderDetails.FindAsync(id);
+        return await context.OrderDetails.FindAsync(id);
     }
 
     public async Task<List<OrderDetail>> CreateOrderDetailsAsync(Order order)
@@ -43,7 +36,7 @@ public class OrderDetailService
 
         foreach (OrderDetail detail in order.OrderDetails)
         {
-            Product? product = await _context.Products.FindAsync(detail.Pid);
+            Product? product = await context.Products.FindAsync(detail.Pid);
             if (product == null)
             {
                 throw new ArgumentException($"Product with ID {detail.Pid} not found.");

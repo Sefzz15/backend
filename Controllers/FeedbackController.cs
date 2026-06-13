@@ -8,22 +8,12 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class FeedbackController : ControllerBase
+public class FeedbackController(AppDbContext context, FeedbackService feedbackService) : ControllerBase
 {
-    private readonly FeedbackService _feedbackService;
-
-    private readonly AppDbContext _context;
-
-    public FeedbackController(AppDbContext context, FeedbackService feedbackService)
-    {
-        _context = context;
-        _feedbackService = feedbackService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllFeedbacks()
     {
-        IEnumerable<Feedback> feedbacks = await _feedbackService.GetAllFeedbacks();
+        IEnumerable<Feedback> feedbacks = await feedbackService.GetAllFeedbacks();
         return Ok(feedbacks);
     }
 
@@ -31,7 +21,7 @@ public class FeedbackController : ControllerBase
     public async Task<IActionResult> PostFeedback([FromBody] Feedback feedback)
     {
         // Optional: ensure the user exists
-        bool userExists = await _context.Users.AnyAsync(u => u.Uid == feedback.Uid);
+        bool userExists = await context.Users.AnyAsync(u => u.Uid == feedback.Uid);
         if (!userExists)
             return NotFound("User not found");
 
@@ -41,8 +31,8 @@ public class FeedbackController : ControllerBase
 
         feedback.Date = DateTime.Now; // ensure server sets the date
 
-        _context.Feedbacks.Add(feedback);
-        await _context.SaveChangesAsync();
+        context.Feedbacks.Add(feedback);
+        await context.SaveChangesAsync();
 
         return Ok(new { message = "Feedback submitted successfully" });
     }
@@ -50,7 +40,7 @@ public class FeedbackController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
-        await _feedbackService.DeleteFeedback(id);
+        await feedbackService.DeleteFeedback(id);
         return NoContent();
     }
 }

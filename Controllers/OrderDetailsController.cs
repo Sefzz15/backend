@@ -6,39 +6,32 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("api/orderdetails")]
-public class OrderDetailsController : ControllerBase
+public class OrderDetailsController(OrderDetailService orderDetailService) : ControllerBase
 {
-    private readonly OrderDetailService _orderDetailService;
-
-    public OrderDetailsController(OrderDetailService orderDetailService)
-    {
-        _orderDetailService = orderDetailService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllOrderDetails()
     {
-        IEnumerable<OrderDetail> orderDetails = await _orderDetailService.GetAllOrderDetails();
+        IEnumerable<OrderDetail> orderDetails = await orderDetailService.GetAllOrderDetails();
         return Ok(orderDetails);
     }
 
     [HttpGet("formatted")]
     public async Task<IActionResult> GetAllOrderDetailsFormatted()
     {
-        IEnumerable<OrderDetail> orderDetails = await _orderDetailService.GetAllOrderDetails();
+        IEnumerable<OrderDetail> orderDetails = await orderDetailService.GetAllOrderDetails();
 
         var result = orderDetails.Select(od => new
         {
             oid = od.Oid,
-            date = od.Order.Date.ToString("d/M/yyyy HH:mm:ss"),
-            productName = od.Product.Pname,
+            date = od.Order!.Date.ToString("d/M/yyyy HH:mm:ss"),
+            productName = od.Product!.Pname,
             quantity = od.Quantity,
-            price = od.Product.Price,
+            price = od.Product!.Price,
             order = new
             {
                 user = new
                 {
-                    uname = od.Order.User.Uname
+                    uname = od.Order!.User!.Uname
                 }
             }
         });
