@@ -12,6 +12,10 @@ public class SpotifyOptions
 {
     public string ClientId { get; set; } = "";
     public string ClientSecret { get; set; } = "";
+
+    // How many Spotify API requests the enricher may have in flight at once.
+    // Bounded by the HttpClient's MaxConnectionsPerServer (see Program.cs). 1 = sequential.
+    public int MaxConcurrency { get; set; } = 5;
 }
 
 public class SpotifyEnricher
@@ -27,6 +31,12 @@ public class SpotifyEnricher
     // Cached client-credentials token (refreshed on expiry or a 401).
     private string? _token;
     private DateTimeOffset _tokenExpiresUtc = DateTimeOffset.MinValue;
+
+    // Serialises token refreshes when several parallel requests hit a 401 at once.
+    private readonly SemaphoreSlim _tokenLock = new(1, 1);
+
+    // Bounds how many Spotify requests are in flight at once; created per enrichment run.
+    private SemaphoreSlim? _httpGate;
 
     public SpotifyEnricher(
         HttpClient http,
@@ -115,14 +125,19 @@ public class SpotifyEnricher
             return 0;
         }
 
-        _log.LogInformation("Enriching {Total} tracks in batches of {Size}...", total, SpotifyPageSize);
+        int concurrency = Math.Max(1, _opt.MaxConcurrency);
+        _httpGate = new SemaphoreSlim(concurrency, concurrency); // bound in-flight Spotify requests
+        _log.LogInformation(
+            "Enriching {Total} tracks in batches of {Size}, up to {Concurrency} requests in parallel...",
+            total, SpotifyPageSize, concurrency);
         await EnsureTokenAsync(ct);
 
         // Oracle's MySql.EntityFrameworkCore can't translate a parameterized collection
         // (`list.Contains(col)`) — it fails to type-map the parameter, and neither
         // TranslateParameterizedCollectionsToConstants() nor EF.Constant() overrides it.
-        // So load the existing keys once and track membership in memory; this also turns
-        // an existence query per batch into a handful of reads up front.
+        // So load the existing keys once and track membership in memory. These sets are
+        // only ever read/mutated on this single owning thread — the parallelism below is
+        // confined to the HTTP fetches and never touches the DB or these collections.
         HashSet<string> knownTracks =
             (await _db.TracksCatalog.Select(x => x.TrackId).ToListAsync(ct)).ToHashSet();
         HashSet<string> knownArtists =
@@ -135,39 +150,24 @@ public class SpotifyEnricher
             .GroupBy(x => x.ArtistId)
             .ToDictionary(grp => grp.Key, grp => grp.Select(x => x.Genre).ToList());
 
-        int inserted = 0, processed = 0, batchNo = 0;
-        int totalBatches = (int)Math.Ceiling(total / (double)SpotifyPageSize);
+        int inserted = 0, processed = 0, waveNo = 0;
+        string[][] batches = trackIds.Chunk(SpotifyPageSize).ToArray();
+        int totalWaves = (int)Math.Ceiling(batches.Length / (double)concurrency);
 
-        foreach (string[] batch in trackIds.Chunk(SpotifyPageSize))
+        // Work in waves of `concurrency` batches: fetch the wave's tracks (and the artists
+        // they reference) from Spotify in parallel, then write the wave to the DB here on
+        // the single owning thread (EF's DbContext is not thread-safe). Committing per wave
+        // keeps the job resumable — a cancelled run resumes from the last committed wave and
+        // only ever fetches ids still missing from the catalog (the incremental behaviour).
+        foreach (string[][] wave in batches.Chunk(concurrency))
         {
-            batchNo++;
-            _log.LogInformation("Batch {Batch}/{TotalBatches}, size {Size}", batchNo, totalBatches, batch.Length);
+            waveNo++;
 
-            // 1) fetch track metadata, flatten into a small shape we control
-            List<JsonElement> rawTracks = await GetWithRetryAsync(() => GetTracksAsync(batch, ct), ct);
-
-            List<ParsedTrack> parsed = new();
-            HashSet<string> allArtistIds = new();
-            foreach (JsonElement t in rawTracks)
-            {
-                if (t.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null) continue;
-
-                string id = t.GetProperty("id").GetString()!;
-                string? name = t.GetProperty("name").GetString();
-                JsonElement album = t.GetProperty("album");
-                string? albumId = album.TryGetProperty("id", out JsonElement aid) ? aid.GetString() : null;
-                string? albumName = album.TryGetProperty("name", out JsonElement an) ? an.GetString() : null;
-
-                List<string> artistIds = new();
-                foreach (JsonElement a in t.GetProperty("artists").EnumerateArray())
-                {
-                    string artistId = a.GetProperty("id").GetString()!;
-                    artistIds.Add(artistId);
-                    allArtistIds.Add(artistId);
-                }
-
-                parsed.Add(new ParsedTrack(id, name, albumId, albumName, artistIds));
-            }
+            // 1) fetch + parse all track batches in this wave concurrently
+            List<ParsedTrack> parsed =
+                (await Task.WhenAll(wave.Select(b => FetchParsedTracksAsync(b, ct))))
+                .SelectMany(p => p)
+                .ToList();
 
             // 2) insert the tracks we don't already have (membership checked in memory)
             List<ParsedTrack> newParsed = parsed.Where(p => !knownTracks.Contains(p.Id)).ToList();
@@ -183,12 +183,20 @@ public class SpotifyEnricher
                 inserted += newParsed.Count;
             }
 
-            // 3) ensure all referenced artists exist (fetch only the ones we don't have)
-            List<string> unknownArtists = allArtistIds.Where(a => !knownArtists.Contains(a)).ToList();
+            // 3) ensure all referenced artists exist — fetch the unknown ones in parallel
+            List<string> unknownArtists = parsed
+                .SelectMany(p => p.ArtistIds)
+                .Distinct()
+                .Where(a => !knownArtists.Contains(a))
+                .ToList();
 
-            foreach (string[] aBatch in unknownArtists.Chunk(SpotifyPageSize))
+            if (unknownArtists.Count > 0)
             {
-                List<JsonElement> rawArtists = await GetWithRetryAsync(() => GetArtistsAsync(aBatch, ct), ct);
+                List<JsonElement> rawArtists =
+                    (await Task.WhenAll(unknownArtists.Chunk(SpotifyPageSize)
+                        .Select(aBatch => GetWithRetryAsync(() => GetArtistsAsync(aBatch, ct), ct))))
+                    .SelectMany(a => a)
+                    .ToList();
 
                 DateTime now = DateTime.UtcNow;
                 List<ArtistCatalog> newArtists = new();
@@ -199,9 +207,10 @@ public class SpotifyEnricher
                     if (a.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null) continue;
 
                     string artistId = a.GetProperty("id").GetString()!;
+                    if (!knownArtists.Add(artistId)) continue; // already have it (or a dupe within the wave)
+
                     string? name = a.GetProperty("name").GetString();
                     newArtists.Add(new ArtistCatalog { ArtistId = artistId, Name = name, FetchedAtUtc = now });
-                    knownArtists.Add(artistId);
 
                     if (a.TryGetProperty("genres", out JsonElement g) && g.ValueKind == JsonValueKind.Array)
                     {
@@ -211,7 +220,8 @@ public class SpotifyEnricher
                         foreach (JsonElement node in g.EnumerateArray())
                         {
                             string? genre = node.GetString();
-                            if (!string.IsNullOrWhiteSpace(genre) && !genres.Contains(genre)) // guards the (ArtistId, Genre) PK against dupes
+                            if (!string.IsNullOrWhiteSpace(genre) &&
+                                !genres.Contains(genre)) // guards the (ArtistId, Genre) PK against dupes
                             {
                                 genres.Add(genre);
                                 newGenres.Add(new ArtistGenre { ArtistId = artistId, Genre = genre });
@@ -241,16 +251,42 @@ public class SpotifyEnricher
             // 5) genre weights for the just-inserted tracks (uses the in-memory genre map)
             if (newParsed.Count > 0) await BuildWeightsAsync(newParsed, genresByArtist, ct);
 
-            processed += batch.Length;
-            _log.LogInformation("Progress {Processed}/{Total} ({Percent:P1})",
-                processed, total, processed / (double)total);
+            processed += wave.Sum(b => b.Length);
+            _log.LogInformation("Wave {Wave}/{TotalWaves} — progress {Processed}/{Total} ({Percent:P1})",
+                waveNo, totalWaves, processed, total, processed / (double)total);
 
             _db.ChangeTracker.Clear(); // keep change tracking cheap across a long job
-            await Task.Delay(150, ct); // pacing
         }
 
         _log.LogInformation("Enrichment complete. Total inserted tracks: {Inserted}", inserted);
         return inserted;
+    }
+
+    // Fetch + parse one batch of track ids into our small shape. Pure HTTP/JSON work with
+    // no shared state, so several of these run safely in parallel.
+    private async Task<List<ParsedTrack>> FetchParsedTracksAsync(string[] batch, CancellationToken ct)
+    {
+        List<JsonElement> rawTracks = await GetWithRetryAsync(() => GetTracksAsync(batch, ct), ct);
+
+        List<ParsedTrack> parsed = new();
+        foreach (JsonElement t in rawTracks)
+        {
+            if (t.ValueKind is JsonValueKind.Undefined or JsonValueKind.Null) continue;
+
+            string id = t.GetProperty("id").GetString()!;
+            string? name = t.GetProperty("name").GetString();
+            JsonElement album = t.GetProperty("album");
+            string? albumId = album.TryGetProperty("id", out JsonElement aid) ? aid.GetString() : null;
+            string? albumName = album.TryGetProperty("name", out JsonElement an) ? an.GetString() : null;
+
+            List<string> artistIds = new();
+            foreach (JsonElement a in t.GetProperty("artists").EnumerateArray())
+                artistIds.Add(a.GetProperty("id").GetString()!);
+
+            parsed.Add(new ParsedTrack(id, name, albumId, albumName, artistIds));
+        }
+
+        return parsed;
     }
 
     // Genre weights for a set of tracks, computed from the caller's in-memory genre
@@ -289,40 +325,57 @@ public class SpotifyEnricher
     }
 
     // ---------------- token: cached + refreshed ----------------
-    private async Task EnsureTokenAsync(CancellationToken ct, bool force = false)
+    // staleToken != null means "refresh because this token just 401'd". The lock + the
+    // staleToken check ensure that when several parallel requests 401 at once, only one
+    // refresh happens — the rest see the already-replaced token and return.
+    private async Task EnsureTokenAsync(CancellationToken ct, string? staleToken = null)
     {
-        if (!force && _token != null && DateTimeOffset.UtcNow < _tokenExpiresUtc)
+        bool forced = staleToken != null;
+        if (!forced && _token != null && DateTimeOffset.UtcNow < _tokenExpiresUtc)
             return;
 
-        string id = _opt.ClientId?.Trim() ?? "";
-        string secret = _opt.ClientSecret?.Trim() ?? "";
-        if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(secret))
-            throw new InvalidOperationException("Spotify ClientId/ClientSecret are not configured.");
-
-        using HttpRequestMessage req = new(HttpMethod.Post, "https://accounts.spotify.com/api/token");
-        string basic = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{id}:{secret}"));
-        req.Headers.Authorization = new AuthenticationHeaderValue("Basic", basic);
-        req.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+        await _tokenLock.WaitAsync(ct);
+        try
         {
-            ["grant_type"] = "client_credentials"
-        });
+            // Re-check under the lock: a parallel caller may have refreshed while we waited.
+            if (!forced && _token != null && DateTimeOffset.UtcNow < _tokenExpiresUtc)
+                return;
+            if (forced && _token != staleToken)
+                return; // someone already replaced the token that 401'd
 
-        using HttpResponseMessage res = await _http.SendAsync(req, ct);
-        if (!res.IsSuccessStatusCode)
-        {
-            string body = await res.Content.ReadAsStringAsync(ct);
-            throw new HttpRequestException(
-                $"Token request failed: {(int)res.StatusCode} {res.ReasonPhrase}. Body: {body}");
+            string id = _opt.ClientId?.Trim() ?? "";
+            string secret = _opt.ClientSecret?.Trim() ?? "";
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(secret))
+                throw new InvalidOperationException("Spotify ClientId/ClientSecret are not configured.");
+
+            using HttpRequestMessage req = new(HttpMethod.Post, "https://accounts.spotify.com/api/token");
+            string basic = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes($"{id}:{secret}"));
+            req.Headers.Authorization = new AuthenticationHeaderValue("Basic", basic);
+            req.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "client_credentials"
+            });
+
+            using HttpResponseMessage res = await _http.SendAsync(req, ct);
+            if (!res.IsSuccessStatusCode)
+            {
+                string body = await res.Content.ReadAsStringAsync(ct);
+                throw new HttpRequestException(
+                    $"Token request failed: {(int)res.StatusCode} {res.ReasonPhrase}. Body: {body}");
+            }
+
+            await using Stream s = await res.Content.ReadAsStreamAsync(ct);
+            using JsonDocument json = await JsonDocument.ParseAsync(s, cancellationToken: ct);
+            JsonElement root = json.RootElement;
+
+            _token = root.GetProperty("access_token").GetString()!;
+            int expiresIn = root.TryGetProperty("expires_in", out JsonElement e) ? e.GetInt32() : 3600;
+            _tokenExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 60); // refresh a minute early
         }
-
-        await using Stream s = await res.Content.ReadAsStreamAsync(ct);
-        using JsonDocument json = await JsonDocument.ParseAsync(s, cancellationToken: ct);
-        JsonElement root = json.RootElement;
-
-        _token = root.GetProperty("access_token").GetString()!;
-        int expiresIn = root.TryGetProperty("expires_in", out JsonElement e) ? e.GetInt32() : 3600;
-        _tokenExpiresUtc = DateTimeOffset.UtcNow.AddSeconds(expiresIn - 60); // refresh a minute early
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
+        finally
+        {
+            _tokenLock.Release();
+        }
     }
 
     // ---------------- Spotify HTTP helpers ----------------
@@ -334,23 +387,39 @@ public class SpotifyEnricher
 
     private async Task<List<JsonElement>> GetJsonArrayAsync(string url, string root, CancellationToken ct)
     {
-        using HttpResponseMessage res = await _http.GetAsync(url, ct);
+        SemaphoreSlim? gate = _httpGate;
+        if (gate != null) await gate.WaitAsync(ct);
+        try
+        {
+            // Auth per-request (not via DefaultRequestHeaders) so parallel calls don't race
+            // on a shared header while another request is refreshing the token.
+            using HttpRequestMessage req = new(HttpMethod.Get, url);
+            string? token = _token;
+            if (token != null)
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        // Surface the two transient cases so GetWithRetryAsync can react to them.
-        if (res.StatusCode == HttpStatusCode.TooManyRequests)
-            throw new TransientApiException { RetryAfter = res.Headers.RetryAfter?.Delta };
-        if (res.StatusCode == HttpStatusCode.Unauthorized)
-            throw new TransientApiException { Unauthorized = true };
+            using HttpResponseMessage res = await _http.SendAsync(req, ct);
 
-        res.EnsureSuccessStatusCode();
+            // Surface the two transient cases so GetWithRetryAsync can react to them.
+            if (res.StatusCode == HttpStatusCode.TooManyRequests)
+                throw new TransientApiException { RetryAfter = res.Headers.RetryAfter?.Delta };
+            if (res.StatusCode == HttpStatusCode.Unauthorized)
+                throw new TransientApiException { Unauthorized = true };
 
-        await using Stream s = await res.Content.ReadAsStreamAsync(ct);
-        using JsonDocument doc = await JsonDocument.ParseAsync(s, cancellationToken: ct);
-        return doc.RootElement
-            .GetProperty(root)
-            .EnumerateArray()
-            .Select(e => e.Clone()) // detach from the JsonDocument before it's disposed
-            .ToList();
+            res.EnsureSuccessStatusCode();
+
+            await using Stream s = await res.Content.ReadAsStreamAsync(ct);
+            using JsonDocument doc = await JsonDocument.ParseAsync(s, cancellationToken: ct);
+            return doc.RootElement
+                .GetProperty(root)
+                .EnumerateArray()
+                .Select(e => e.Clone()) // detach from the JsonDocument before it's disposed
+                .ToList();
+        }
+        finally
+        {
+            gate?.Release();
+        }
     }
 
     // Bounded retry: refresh the token on 401, honour Retry-After on 429.
@@ -367,7 +436,7 @@ public class SpotifyEnricher
                 if (ex.Unauthorized)
                 {
                     _log.LogWarning("401 Unauthorized (attempt {Attempt}); refreshing token", attempt);
-                    await EnsureTokenAsync(ct, force: true);
+                    await EnsureTokenAsync(ct, staleToken: _token);
                 }
                 else
                 {
