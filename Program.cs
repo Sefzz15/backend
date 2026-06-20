@@ -5,12 +5,16 @@ using backend.Data;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// CORS
+// CORS — allowed origins come from configuration (Cors:AllowedOrigins, comma-separated); defaults to local dev.
+string[] allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? new[] { "http://localhost:4200" };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost", policy =>
     {
-        policy.WithOrigins("http://localhost:4200")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -74,6 +78,26 @@ builder.Services.AddHttpClient<SpotifyEnricher>(client =>
 
 // Build app
 WebApplication app = builder.Build();
+
+// Apply pending EF Core migrations on startup so a fresh MySQL container gets its schema.
+// Retry briefly to tolerate the database container still warming up.
+using (IServiceScope migrationScope = app.Services.CreateScope())
+{
+    AppDbContext db = migrationScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    for (int attempt = 1; ; attempt++)
+    {
+        try
+        {
+            db.Database.Migrate();
+            break;
+        }
+        catch (Exception ex) when (attempt < 10)
+        {
+            app.Logger.LogWarning(ex, "Database not ready (attempt {Attempt}/10), retrying in 3s...", attempt);
+            Thread.Sleep(TimeSpan.FromSeconds(3));
+        }
+    }
+}
 
 
 // Optional: import Spotify data
