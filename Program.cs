@@ -100,13 +100,36 @@ using (IServiceScope migrationScope = app.Services.CreateScope())
 }
 
 
-// Optional: import Spotify data
+// Optional: import Spotify data.
+//   Windows (host):  dotnet run -- --import-spotify              → opens a folder picker
+//   Explicit folder: dotnet run -- --import-spotify "<folder>"   → imports from that folder
+//   Docker/Linux:    pass the folder (mounted into the container) or set SPOTIFY_IMPORT_DIR,
+//                    because the GUI folder picker can't run in a headless container.
 if (args.Contains("--import-spotify"))
 {
     using IServiceScope scope = app.Services.CreateScope();
     AppDbContext db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await SpotifyImporter.ImportAsync(db);
+
+    string? dir = ImportDirFromArgs(args) ?? Environment.GetEnvironmentVariable("SPOTIFY_IMPORT_DIR");
+    if (!string.IsNullOrWhiteSpace(dir))
+        await SpotifyImporter.ImportAsync(db, dir);
+    else
+        await SpotifyImporter.ImportAsync(db);   // no folder given → Windows folder picker
     return;
+
+    // Accepts either "--import-spotify <folder>" or "--import-spotify=<folder>".
+    static string? ImportDirFromArgs(string[] args)
+    {
+        const string flag = "--import-spotify";
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i].StartsWith(flag + "=", StringComparison.Ordinal))
+                return args[i][(flag.Length + 1)..];
+            if (args[i] == flag && i + 1 < args.Length && !args[i + 1].StartsWith("--", StringComparison.Ordinal))
+                return args[i + 1];
+        }
+        return null;
+    }
 }
 
 // Pipeline

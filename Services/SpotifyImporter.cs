@@ -8,8 +8,10 @@ namespace backend.Services;
 
 public static class SpotifyImporter
 {
-    // New: pass a directory path
-    private static async Task ImportAsync(AppDbContext context, string directory, CancellationToken ct = default)
+    // Import from an explicit directory path. Used directly when a folder is
+    // supplied on the command line (e.g. in Docker, where the GUI folder picker
+    // below can't run); the picker overload also funnels into this.
+    public static async Task ImportAsync(AppDbContext context, string directory, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(directory))
             throw new ArgumentException("Directory path is required.", nameof(directory));
@@ -108,12 +110,42 @@ public static class SpotifyImporter
         return $"{stamp}|{uri}|{msPlayed}";
     }
 
+    // Entry point used by the CLI. Pops up the Windows "Select Folder" Explorer
+    // dialog so the user picks the import directory, then imports from it.
     public static Task ImportAsync(AppDbContext context, CancellationToken ct = default)
-        => ImportAsync(context, @"C:\Users\Sefzz\Desktop\MyProject\Spotify Extended Streaming History", ct);
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            Console.WriteLine("❌ The folder picker is only available on Windows.");
+            return Task.CompletedTask;
+        }
+
+        Console.WriteLine("📂 Opening folder picker — choose your Spotify Extended Streaming History folder...");
+        string? directory = FolderPicker.PickFolder("Select your Spotify Extended Streaming History folder");
+
+        if (string.IsNullOrWhiteSpace(directory))
+        {
+            Console.WriteLine("No folder selected — import cancelled.");
+            return Task.CompletedTask;
+        }
+
+        Console.WriteLine($"📁 Selected folder: {directory}");
+        return ImportAsync(context, directory, ct);
+    }
 }
 
-// to import Spotify data
-//  dotnet run -- --import-spotify
-
-// to enrich Spotify data
-// Invoke-RestMethod -Method Post -Uri https://localhost:5000/api/spotify/enrich/backfill   ||  to backfill existing records
+// ─────────────────────────────────────────────────────────────────────────────
+// Spotify import
+//
+// ── LOCAL database
+//   Import:  dotnet run -- --import-spotify
+//   Enrich:  Invoke-RestMethod -Method Post -Uri https://localhost:5000/api/spotify/enrich/backfill
+//            (localhost:5000 is the local dotnet process — NOT the container)
+//
+// ── DOCKERIZED database
+//            cd "\devhub-deploy"
+//   Import:  docker compose run --rm backend-import
+//   Enrich:  Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8088/api/spotify/enrich/backfill
+//            (reaches the backend container via Caddy; or use https://app.sefzz.com/api/spotify/enrich/backfill)
+//   see logs:             docker compose logs -f backend
+// ─────────────────────────────────────────────────────────────────────────────
