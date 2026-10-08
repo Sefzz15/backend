@@ -12,7 +12,7 @@ public class UserController(UserService userService, JwtService jwtService) : Co
     public async Task<IActionResult> GetAllUsers()
     {
         IEnumerable<User> users = await userService.GetAllUsers();
-        return Ok(users);
+        return Ok(users.Select(UserResponse.From));
     }
 
     [HttpGet("{id}")]
@@ -20,7 +20,7 @@ public class UserController(UserService userService, JwtService jwtService) : Co
     {
         User? user = await userService.GetUserById(id);
         if (user == null) return NotFound();
-        return Ok(user);
+        return Ok(UserResponse.From(user));
     }
 
     // New endpoint for getting user ID by username
@@ -89,20 +89,45 @@ public class UserController(UserService userService, JwtService jwtService) : Co
         user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
 
         await userService.AddUser(user);
-        return CreatedAtAction(nameof(GetUserById), new { id = user.Uid }, user);
+        return CreatedAtAction(nameof(GetUserById), new { id = user.Uid }, UserResponse.From(user));
     }
 
 
+    // Passwords are deliberately NOT editable here - see PUT {id}/password.
+    // The stored hash is carried over, so a client echoing back a stale value
+    // cannot overwrite it (which used to re-hash the hash and lock the user out).
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
     {
         if (id != user.Uid) return BadRequest();
 
-        if (!string.IsNullOrEmpty(user.Upass))
+        User? existing = await userService.GetUserById(id);
+        if (existing == null) return NotFound();
+
+        existing.Uname = user.Uname;
+
+        await userService.UpdateUser(existing);
+        return NoContent();
+    }
+
+    // Changing a password requires the account's current one, same rule as delete.
+    [HttpPut("{id}/password")]
+    public async Task<IActionResult> UpdatePassword(int id, [FromBody] UpdatePasswordRequest? request)
+    {
+        if (string.IsNullOrEmpty(request?.CurrentPassword) || string.IsNullOrEmpty(request.NewPassword))
         {
-            user.Upass = BCrypt.Net.BCrypt.HashPassword(user.Upass);
+            return BadRequest(new { message = "Current and new password are required." });
         }
 
+        User? user = await userService.GetUserById(id);
+        if (user == null) return NotFound();
+
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.Upass))
+        {
+            return Unauthorized(new { message = "Incorrect current password." });
+        }
+
+        user.Upass = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await userService.UpdateUser(user);
         return NoContent();
     }
