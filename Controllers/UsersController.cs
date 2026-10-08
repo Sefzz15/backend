@@ -93,9 +93,7 @@ public class UserController(UserService userService, JwtService jwtService) : Co
     }
 
 
-    // Passwords are deliberately NOT editable here - see PUT {id}/password.
-    // The stored hash is carried over, so a client echoing back a stale value
-    // cannot overwrite it (which used to re-hash the hash and lock the user out).
+    // Loading the stored row keeps the hash intact; see PUT {id}/password to change it.
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
     {
