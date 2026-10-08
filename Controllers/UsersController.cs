@@ -109,8 +109,21 @@ public class UserController(UserService userService, JwtService jwtService) : Co
 
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(int id)
+    public async Task<IActionResult> DeleteUser(int id, [FromBody] DeleteUserRequest? request)
     {
+        if (string.IsNullOrEmpty(request?.Password))
+        {
+            return BadRequest(new { message = "Password is required." });
+        }
+
+        User? user = await userService.GetUserById(id);
+        if (user == null) return NotFound();
+
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.Upass))
+        {
+            return Unauthorized(new { message = "Incorrect password for that account." });
+        }
+
         await userService.DeleteUser(id);
         return NoContent();
     }
